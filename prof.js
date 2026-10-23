@@ -58,6 +58,9 @@ function importerObjet(o){
 function importerQR(q){
   if(q.t==='C')throw new Error('C’est le QR de démarrage de la classe (pour les tablettes).');
   if(q.t==='T')throw new Error('C’est un QR de changement de groupe (pour une tablette d’élève).');
+  if(q.t==='G'){/* QR d'un binôme : la séance de chaque élève */
+    const L=(q.R||[]).map(r=>{const [k,res]=ajouterSeance({classe:q.c||'',cy:q.y,eleve:r.e,sexe:r.x,seance:q.s,date:q.d,ts:q.ts||0,src:'qr',groupe:q.gr,coach:r.co,coachRemplacant:!!r.cr,vmaManuelle:r.m,d:r.D});return prenomDe(r.e)+' ('+res+')'});
+    return SBY[q.s].n+' · '+L.join(', ')}
   if(q.t!=='S')throw new Error('QR non reconnu.');
   const [k,res]=ajouterSeance({classe:q.c||'',cy:q.y,eleve:q.e,sexe:q.x,seance:q.s,date:q.d,ts:q.ts||0,src:'qr',groupe:q.gr,coach:q.co,coachRemplacant:!!q.cr,vmaManuelle:q.m,d:q.D});
   return q.e+' · '+SBY[q.s].n+' ('+res+')';
