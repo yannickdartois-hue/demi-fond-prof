@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#c2412d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="DF Prof">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-32.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Demi-fond · Prof</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="prof">
+<header>
+ <div class="barre"><svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#fff"/><g fill="none" stroke="#0f766e" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" transform="translate(14 10) scale(.72)"><circle cx="60" cy="16" r="9" fill="#0f766e" stroke="none"/><path d="M55 30 L45 56 M53 32 L68 42 L80 36 M53 32 L38 38 L30 50 M45 56 L62 66 L58 88 M45 56 L34 72 L16 74"/><path d="M4 54 h14 M0 66 h12 M6 42 h10" stroke-width="5" opacity=".5"/></g></svg>
+  <div class="brand"><b>Demi-fond · Prof</b><small>Suivi des séances · Seconde et Terminale</small></div>
+  <div id="classes"></div></div>
+ <nav class="otop" id="onglets"></nav>
+</header>
+<main id="main"></main>
+<div id="modal"><div id="modal-body"></div></div>
+<div id="toast" role="status"></div>
+<div id="upd" role="status"></div>
+<script src="donnees.js"></script>
+<script src="logique.js"></script>
+<script src="qrcode.js"></script>
+<script src="jsqr.js"></script>
+<script src="scan.js"></script>
+<script src="jszip.js"></script>
+<script src="xlsx.js"></script>
+<script src="vues.js"></script>
+<script src="chrono.js"></script>
+<script src="prof.js"></script>
+<script src="prof-demo.js"></script>
+</body>
+</html>
