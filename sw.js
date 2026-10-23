@@ -1,6 +1,6 @@
 /* Hors ligne : l'outil est gardé sur l'appareil après la 1re ouverture.
-   Après une modification, augmenter VERSION (dfp-v1 → dfp-v3…). */
-const VERSION='dfp-v3';
+   Après une modification, augmenter VERSION (dfp-v1 → dfp-v4…). */
+const VERSION='dfp-v4';
 const FICHIERS=['./','index.html','style.css','donnees.js','logique.js','qrcode.js','jsqr.js','scan.js','jszip.js','xlsx.js','vues.js','chrono.js','prof.js','prof-demo.js','manifest.webmanifest',
   'icon-32.png','icon-180.png','icon-192.png','icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(VERSION).then(c=>c.addAll(FICHIERS)).then(()=>self.skipWaiting()))});
