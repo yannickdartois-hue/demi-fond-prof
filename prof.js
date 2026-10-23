@@ -220,7 +220,8 @@ async function qrDemarrage(c){const L=P.classesL[c],k=await clePublique();
   qrPlein('Classe '+esc(c)+' · demi-fond '+CYC[L.cy||'S'].label,'Appli élève : « Scanner le QR de la classe » (accueil, ou Groupe → Nouvelle liste de classe)',[txt])}
 function vClasses(){
   const C=Object.keys(P.classesL).sort((a,b)=>a.localeCompare(b,'fr'));
-  return `<section class="card"><h2>Classes</h2><h3>Importer une liste Pronote</h3>
+  return `${DEMO?'':`<section class="card demo-carte"><h3>👀 Découvrir l’outil (démo)</h3><p class="small muted">Deux classes fictives déjà remplies (Seconde et Terminale) : appel, suivi des séances, fiches élèves, note, pilotage. Rien n’est enregistré et tes vraies données ne sont pas touchées. Idéal pour montrer l’outil à un collègue.</p><div class="row wrap"><button class="btn pri" data-act="demo">Ouvrir la démo</button><a class="btn" href="../demi-fond-eleves/?demo">Démo de l’appli élève</a></div></section>`}
+  <section class="card"><h2>Classes</h2><h3>Importer une liste Pronote</h3>
     <p class="small muted">Pronote : liste des élèves → Exporter (xlsx, xls ou csv). Avec une colonne « Classe », plusieurs classes s’importent d’un coup ; une colonne « Sexe » remplit fille/garçon. Tu peux aussi coller la liste (un élève par ligne, « NOM Prénom »).</p>
     <div class="row wrap"><label>Classe (si le fichier ne la donne pas)<input id="cl-nom" class="in" placeholder="2nde 3"></label>
      <label>Niveau<select id="cl-cy" class="in sel"><option value="">selon le nom (« T… » = Terminale)</option><option value="S">Seconde (S1-S8)</option><option value="T">Terminale (T1-T9)</option></select></label></div>
@@ -472,6 +473,7 @@ document.addEventListener('click',async ev=>{
     case 'chpause':{const r=CH.run;if(!r)return;if(r.paused){r.end=Date.now()+r.left*1000;r.paused=false}else r.paused=true;return rendre()}
     case 'chstop':chStop();return rendre();
     case 'demoQuitter':location.href=location.pathname;return;
+    case 'demo':window.scrollTo(0,0);return ouvrirDemoProf();
     default:return;
   }
   sauver();rendre();
