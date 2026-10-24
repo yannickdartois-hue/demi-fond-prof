@@ -150,6 +150,8 @@ function alertes(c){const cy=clsCy(c),L=sessOf(cy),K=eleves(c);const out=[];
 const ICA={qr:'📵',ko:'🎯',vma:'✎',abs:'🚫',coach:'⏱',rpe:'💡'};
 function vmaDe(e){const L=sessOf(e.cy);return vmaOf(runOf(e),L[L.length-1].id)}
 const heat=r=>r>=0.75?'h3':r>=0.5?'h2':r>=0.25?'h1':'h0';
+/* signe en plus de la couleur (daltonisme : rouge et vert se confondent pour 8 % des garçons) */
+const sig=r=>`<em class="sig">${r>=0.75?'✓✓':r>=0.5?'✓':r>=0.25?'!':'✗'}</em>`;
 const grpVit=v=>v==null?null:v<10?'G1':v<12?'G2':v<14?'G3':'G4';
 
 /* ---------- Protection des données ---------- */
@@ -318,9 +320,9 @@ function vEleves(){if(!P.classe)return pasDeClasse('Élèves');const cy=clsCy(P.
     const b6=aflOf(run,e.seances[ev[0]],cy),e8=aflOf(run,e.seances[ev[1]],cy);
     return `<tr><th class="l"><button class="lnk" data-act="fiche" data-k="${esc(k)}">${nm(e)}</button></th><td>${fV(vmaDe(e))}</td>${L.map(s=>{const d=e.seances[s.id];const st=statut(k,s.id).c;if(!d)return `<td class="no">${st==='abj'||st==='absent'?'abs':st==='oubli'?'oubli':'·'}</td>`;const [t,n]=tenR(run,s.id);const sr=starOf(k,s.id);
       if(d.st)return `<td class="abs"><button class="cell" data-act="det" data-k="${esc(k)}" data-v="${s.id}">${d.st==='abs'?'abs':'disp'}</button></td>`;
-      return `<td class="yes ${n?heat(t/n):''}"><button class="cell" data-act="det" data-k="${esc(k)}" data-v="${s.id}">${n?t+'/'+n:'✓'}${d.ad?'<i>adapté</i>':''}${d.cx?'<i>coach ↺</i>':''}${d.vj?'<i>VMA ✎</i>':''}${sr.a2?'<i>★2</i>':''}${sr.a3?'<i>★3</i>':''}</button></td>`}).join('')}
-     <td class="${N?heat(TT/N):''}">${N?TT+'/'+N+' · '+R(100*TT/N)+' %<br><small>degré '+dg+'</small>':'–'}</td><td>${ecTrend(e)}</td><td>${coachTxt(k)}</td><td>${fc(b6&&b6.tot)}</td><td>${fc(e8&&e8.tot)}</td></tr>`}).join('')}</table></div>
-  <p class="muted small">Case = projets tenus / tentés (projets ambitieux seulement) ; couleur : vert ¾ et plus, vert pâle ½, ambre ¼, rouge moins. Touche une case pour le détail, un nom pour la fiche de l’élève (courbes, QR de reprise).</p></section>`}
+      return `<td class="yes ${n?heat(t/n):''}"><button class="cell" data-act="det" data-k="${esc(k)}" data-v="${s.id}">${n?sig(t/n)+t+'/'+n:'✓'}${d.ad?'<i>adapté</i>':''}${d.cx?'<i>coach ↺</i>':''}${d.vj?'<i>VMA ✎</i>':''}${sr.a2?'<i>★2</i>':''}${sr.a3?'<i>★3</i>':''}</button></td>`}).join('')}
+     <td class="${N?heat(TT/N):''}">${N?sig(TT/N)+TT+'/'+N+' · '+R(100*TT/N)+' %<br><small>degré '+dg+'</small>':'–'}</td><td>${ecTrend(e)}</td><td>${coachTxt(k)}</td><td>${fc(b6&&b6.tot)}</td><td>${fc(e8&&e8.tot)}</td></tr>`}).join('')}</table></div>
+  <p class="muted small">Case = projets tenus / tentés (projets ambitieux seulement) ; couleur et signe : ✓✓ vert ¾ et plus, ✓ vert pâle ½, ! ambre ¼, ✗ rouge moins. Touche une case pour le détail, un nom pour la fiche de l’élève (courbes, QR de reprise).</p></section>`}
 /* ----- Fiche élève ----- */
 function vFiche(){const k=P.eleve,e=P.eleves[k];if(!e){P.vue='eleves';return vEleves()}
   const cy=e.cy,L=sessOf(cy),run=runOf(e);const [TT,N]=totaux(e);const dg=degreeOf(TT,N);const autres=eleves().filter(x=>x!==k);

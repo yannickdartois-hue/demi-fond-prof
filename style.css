@@ -350,3 +350,4 @@ table.pt td.h3{background:#bbf7d0}table.pt td.h2{background:#e2f5d3}table.pt td.
 nav.otop .og{flex:none;align-self:center;font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 2px 0 10px}
 nav.otop .og:first-child{padding-left:0}
 .tag.neuf{background:var(--acc2);margin-left:6px;vertical-align:1px}
+.sig{display:block;font-style:normal;font-size:12px;font-weight:900;line-height:1;opacity:.8}
