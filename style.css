@@ -349,3 +349,4 @@ table.pt td.h3{background:#bbf7d0}table.pt td.h2{background:#e2f5d3}table.pt td.
 :root[data-theme="dark"] table.pt td.h3{background:#14532d}:root[data-theme="dark"] table.pt td.h2{background:#1f3d22}:root[data-theme="dark"] table.pt td.h1{background:#4a3708}:root[data-theme="dark"] table.pt td.h0{background:#4c1616}
 nav.otop .og{flex:none;align-self:center;font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 2px 0 10px}
 nav.otop .og:first-child{padding-left:0}
+.tag.neuf{background:var(--acc2);margin-left:6px;vertical-align:1px}

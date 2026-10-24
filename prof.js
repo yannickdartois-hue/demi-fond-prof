@@ -388,7 +388,7 @@ function prepa(e){const run=runOf(e),L=sessOf(e.cy);const ech=[],amb=[],reg=[];
       if(ty==='pe')reg.push(d.pe&&(d.pe.v3||d.pe.p)?(d.pe.why?1:0.5):0);
       if(ty==='mine')reg.push(d.mi&&d.mi.th&&(d.mi.x||[]).some(Boolean)?1:0);
       if(ty==='pfin')reg.push(d.pfin&&Object.values(d.pfin).some(Boolean)?1:0)});
-    reg.push(String((d.bl||{}).nx||'').trim().length>=5?1:0)});
+    if(voit('nx',s))reg.push(String((d.bl||{}).nx||'').trim().length>=5?1:0)});
   const parts=[['échauffement',moy(ech)],['projets ambitieux',moy(amb)],['régulation écrite',moy(reg)]].filter(x=>x[1]!=null);
   return parts.length?{v:moy(parts.map(x=>x[1])),parts}:null}
 function sugAFL2(e,cy){const [T,N]=totaux(e);const dg=degreeOf(T,N);const mx=AFLMAX(cy,e)[0],mt=Math.min(2,mx/2),mp=mx-mt;const pr=prepa(e);if(!dg&&!pr)return null;

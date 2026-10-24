@@ -207,7 +207,7 @@ const RESULT=['ec2','afl1','afl1T','vup'];
 const STEP_KEY={al4:'al',ct:'ct',grp:'grp',i36:'i36',i36m:'i36',ra:'ra',ra2:'ra2',m130:'m130',warm:'wc',warmT:'wc',pf:'pf',pfT:'pf',situe:'situe',at:'at',pe:'pe',rel5:'rlt',tours:'tr',t3624:'ts',rt:'rt',i112:'c112',rep:'rep',mine:'mi',real8:'r8',pfin:'pfin'};
 function filled(x){if(x==null||x==='')return false;if(Array.isArray(x))return x.some(filled);if(typeof x==='object')return Object.keys(x).some(k=>filled(x[k]));return true}
 function stepDone(B,d){const [ty,a1]=B;
-  if(ty==='bilan')return filled(getPath(d,'bl.rpe'))&&(filled(getPath(d,'bl.reu'))||filled(getPath(d,'bl.nx')));
+  if(ty==='bilan'){const s=SBY[V.sid];return (!s||!voit('rpe',s)||filled(getPath(d,'bl.rpe')))&&(filled(getPath(d,'bl.reu'))||filled(getPath(d,'bl.nx')))}
   if(ty==='c3')return c3dist(d[a1])!=null;if(ty==='p130')return num(d[a1]&&d[a1].ec)!=null;if(ty==='c500')return parseT(d[a1]&&d[a1].t)!=null;
   if(ty==='txt'||ty==='ser')return filled(d[a1]);if(ty==='warm'||ty==='warmT')return filled(d.wc)||filled(d.warm);return filled(getPath(d,STEP_KEY[ty]||ty))}
 /* deux temps : sur la piste (le coach note l'essentiel, quelques secondes par course) et en fin de séance (réflexion, bilan) */
@@ -387,8 +387,8 @@ function lapChart(lt){const a=(lt||[]).map(num).filter(x=>x!=null&&x>0);if(a.len
   return `<div class="chart"><p class="small"><b>Temps de chaque tour</b> · écart ${R(mx-mn)} s ${mx-mn<=4?'✓ régulier':'✗ irrégulier'}</p><svg viewBox="0 0 ${W} ${H}" role="img">${a.map((x,i)=>`<rect x="${i*bw+6}" y="${y(x)}" width="${bw-12}" height="${B-y(x)}" rx="6" fill="${Math.abs(x-m)<=2?'var(--acc)':'var(--track)'}"/><text x="${i*bw+bw/2}" y="${y(x)-5}" text-anchor="middle" font-size="14" font-weight="700" fill="currentColor">${fT(x)}</text><text x="${i*bw+bw/2}" y="${H-4}" text-anchor="middle" font-size="12" fill="currentColor" opacity=".6">tour ${i+1}</text>`).join('')}<line x1="0" x2="${a.length*bw}" y1="${y(m)}" y2="${y(m)}" stroke="currentColor" stroke-dasharray="4 4" opacity=".45"/></svg></div>`}
 
 /* ---------- pronostic du coach (AFL3 évaluable) ---------- */
-function pronoField(s,b,d){const B=pronoTarget(s);if(!B||B[0]!==b[0]||B[1]!==b[1])return '';const T=B[0]==='c500';const p=T?parseT(getPath(d,'bl.pr')):num(getPath(d,'bl.pr'));const r=pronoReal(B,d);
-  return `<div class="prono"><p class="small"><b>⏱ Pronostic du coach</b> <span class="muted">(avant le départ : ce que tu penses qu’il va réaliser)</span></p>
+function pronoField(s,b,d){const B=pronoTarget(s);if(!B||B[0]!==b[0]||B[1]!==b[1]||!voit('prono',s))return '';const T=B[0]==='c500';const p=T?parseT(getPath(d,'bl.pr')):num(getPath(d,'bl.pr'));const r=pronoReal(B,d);
+  return `<div class="prono"><p class="small"><b>⏱ Pronostic du coach</b>${neuf('prono',s)} <span class="muted">(avant le départ : ce que tu penses qu’il va réaliser)</span></p>
    ${T?tstp('bl.pr',d,{min:75,max:270,start:parseT(d[B[1]]&&d[B[1]].tp)||130}):stp('bl.pr',d,{step:B[0]==='c3'?10:5,min:100,max:1200,start:num(B[0]==='c3'?d[B[1]]&&d[B[1]].v:d[B[1]]&&d[B[1]].proj)||(B[0]==='c3'?600:300)})}
    ${p!=null&&r!=null?`<span class="small ${Math.abs(p-r)/r<=0.03?'ok':'muted'}">Écart du pronostic : ${T?R(Math.abs(p-r))+' s':R(Math.abs(p-r))+' m'} (${R(Math.abs(p-r)/r*100)} %)</span>`:''}</div>`}
 /* ---------- conseils suggérés au coach ---------- */
@@ -409,21 +409,28 @@ function suggest(s,run,d,v){const L=[];
     if(ty==='i112'&&v){const c=v*a1/100;const a=(d.c112||[]).map(num).filter(x=>x!=null);if(a.length>=2){const lo=a.filter(x=>x<c-1).length,hi=a.filter(x=>x>c+1).length;if(lo>=2)L.push('Coupelle pas atteinte : régularise ta foulée et relance à mi-parcours.');else if(hi>=2)L.push('Tu dépasses ta coupelle : c’est 80 %, reste en aisance respiratoire.')}}
     if(ty==='tours'){const tr=d.tr||[];let fast=0,slow=0;[8,10,12,14].forEach((v0,i)=>{const t=parseT(tr[i]&&tr[i].t);if(t!=null){const p=tSec(200,v0);if(t<p-2)fast++;if(t>p+2)slow++}});if(fast>=2)L.push('Tu cours trop vite aux petites allures : le coach annonce le passage au 100 m.');if(slow>=2)L.push('Tu es en retard au tour : relance dans la ligne droite.')}
   });return [...new Set(L)].slice(0,4)}
+/* Seconde : les notions arrivent séance après séance (Terminale : tout, dès T1).
+   S1 le coach a vu, réussite, conseil, rôle · S2 + effort ressenti, charge, « la prochaine fois »
+   S3 + idées de conseils, « le conseil m'a aidé » (et le projet, avec la S3) · S4 + pronostic du coach, FC */
+const NOTION={rpe:2,nx:2,sugg:3,aide:3,prono:4,fc:4};
+const nivS=s=>s.id[0]==='t'?99:sessOf('S').findIndex(x=>x.id===s.id)+1;
+const voit=(f,s)=>nivS(s)>=NOTION[f];
+const neuf=(f,s)=>nivS(s)===NOTION[f]?' <span class="tag neuf">nouveau</span>':'';
 function bilanView(s,run,d,t,n,v){
   const cr=getPath(d,'bl.cr')||[];const sg=suggest(s,run,d,v);const con=getPath(d,'bl.con')||'';
   return `<section class="card bilan"><h3>Bilan</h3>
    <p class="small"><b>⏱ Le coach a vu</b></p><div class="checks">${s.crit.map((c,i)=>`<button class="chk ${cr[i]?'on':''}" data-set="bl.cr.${i}" data-v="${cr[i]?'':'1'}">${cr[i]?'☑':'☐'} ${esc(c)}</button>`).join('')}</div>
    <div class="row wrap"><label class="f1">⏱ Ta réussite ${txt('bl.reu',d)}</label><label class="f1">⏱ Ton conseil ${txt('bl.con',d)}</label></div>
-   ${sg.length?`<p class="small"><b>💡 Idées de conseils</b> <span class="muted">(d’après les résultats · touche pour ajouter)</span></p><div class="sugg">${sg.map(x=>`<button class="chip sg ${con.includes(x)?'on':''}" data-sugg="${esc(x)}">＋ ${esc(x)}</button>`).join('')}</div>`:''}
-   <p class="small"><b>✎ Le conseil de mon coach m’a aidé</b></p>${segv('bl.aide',d,[['1','oui'],['0','non']])}
-   <p class="small"><b>✎ Effort ressenti sur la séance</b> <span class="muted">(0 repos … 10 maximal)</span></p>
+   ${sg.length&&voit('sugg',s)?`<p class="small"><b>💡 Idées de conseils</b>${neuf('sugg',s)} <span class="muted">(d’après les résultats · touche pour ajouter)</span></p><div class="sugg">${sg.map(x=>`<button class="chip sg ${con.includes(x)?'on':''}" data-sugg="${esc(x)}">＋ ${esc(x)}</button>`).join('')}</div>`:''}
+   ${voit('aide',s)?`<p class="small"><b>✎ Le conseil de mon coach m’a aidé</b>${neuf('aide',s)}</p>${segv('bl.aide',d,[['1','oui'],['0','non']])}`:''}
+   ${voit('rpe',s)?`<p class="small"><b>✎ Effort ressenti sur la séance</b>${neuf('rpe',s)} <span class="muted">(0 repos … 10 maximal)</span></p>
    <div class="rpe">${[0,1,2,3,4,5,6,7,8,9,10].map(k=>`<button class="chip sm r${k} ${String(getPath(d,'bl.rpe'))===String(k)?'on':''}" data-set="bl.rpe" data-v="${k}">${k}</button>`).join('')}</div>
    <p class="small rpel">${getPath(d,'bl.rpe')!=null&&getPath(d,'bl.rpe')!==''?RPE_TXT[+getPath(d,'bl.rpe')]:'Touche le chiffre qui correspond à ton effort.'}</p>
-   <div class="row wrap"><label>✎ Durée de pratique (min) ${stp('bl.du',d,{step:5,min:10,max:120,start:60})}</label>${out('Charge de la séance',chargeOf(d)!=null?chargeOf(d)+' UA':'–')}</div>
-   <details class="help"><summary>FC (facultatif)</summary><div><label>FC en fin de série (/min), pouls 15" × 4 ${stp('bl.fc',d,{step:4,min:60,max:240,start:160,chk:CHK.fc})}</label></div></details>
+   <div class="row wrap"><label>✎ Durée de pratique (min) ${stp('bl.du',d,{step:5,min:10,max:120,start:60})}</label>${out('Charge de la séance',chargeOf(d)!=null?chargeOf(d)+' UA':'–')}</div>`:''}
+   ${!voit('fc',s)?'':`<details class="help"><summary>FC (facultatif)</summary><div><label>FC en fin de série (/min), pouls 15" × 4 ${stp('bl.fc',d,{step:4,min:60,max:240,start:160,chk:CHK.fc})}</label></div></details>`}
    <div><p class="small"><b>✎ Mon rôle aujourd’hui</b></p>${segv('bl.role',d,[['coach','coach'],['juge','juge-chrono']])}</div>
    <div class="outs">${out('Projets tenus aujourd’hui',n?t+' / '+n:'–','hi')}</div>
-   <label>✎ La prochaine fois, je… ${txt('bl.nx',d)}</label></section>`;
+   ${voit('nx',s)?`<label>✎ La prochaine fois, je…${neuf('nx',s)} ${txt('bl.nx',d)}</label>`:''}</section>`;
 }
 
 /* ---------- compteur et chrono en direct (coach) ---------- */
