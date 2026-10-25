@@ -5,11 +5,11 @@
  --r:20px;--r-sm:14px;--sh:0 1px 2px rgba(15,31,36,.06),0 8px 24px -12px rgba(15,31,36,.18);--sh-hi:0 10px 30px -10px rgba(13,148,136,.45);
  --font:ui-rounded,"SF Pro Rounded","Nunito","Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1517;--bg2:#0f1d20;--card:#132327;--fg:#e8f3f1;--muted:#9db3b1;--line:#24393c;--acc:#2dd4bf;--acc2:#14b8a6;--acc-fg:#04201c;--soft:#103632;--track-soft:#3a1d12;--sh:0 1px 2px rgba(0,0,0,.3),0 10px 30px -14px rgba(0,0,0,.6)}}
+:root[data-theme="dark"]{--bg:#0b1517;--bg2:#0f1d20;--card:#132327;--fg:#e8f3f1;--muted:#9db3b1;--line:#24393c;--acc:#2dd4bf;--acc2:#14b8a6;--acc-fg:#04201c;--soft:#103632;--track-soft:#3a1d12;--sh:0 1px 2px rgba(0,0,0,.3),0 10px 30px -14px rgba(0,0,0,.6)}
 :root[data-theme="dark"]{--bg:#0b1517;--bg2:#0f1d20;--card:#132327;--fg:#e8f3f1;--muted:#9db3b1;--line:#24393c;--acc:#2dd4bf;--acc2:#14b8a6;--acc-fg:#04201c;--soft:#103632;--track-soft:#3a1d12}
 *{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
 body{margin:0;background:radial-gradient(1200px 500px at 100% -10%,#d5efe9 0,transparent 60%),radial-gradient(900px 400px at -10% 10%,#ffe7dc 0,transparent 55%),var(--bg);background-attachment:fixed;color:var(--fg);font:17px/1.45 var(--font);padding-bottom:env(safe-area-inset-bottom);-webkit-tap-highlight-color:transparent}
-@media (prefers-color-scheme:dark){body{background:var(--bg)}}
+:root[data-theme="dark"] body{background:var(--bg)}
 /* ---- en-tête ---- */
 header{position:sticky;top:0;z-index:5;color:#fff;display:flex;align-items:center;gap:12px;padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top));
  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='220' viewBox='0 0 600 220'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.16' stroke-width='3'%3E%3Cpath d='M-20 200 C 160 200 220 40 420 40 S 640 40 660 40'/%3E%3Cpath d='M-20 218 C 170 218 230 58 420 58 S 640 58 660 58'/%3E%3Cpath d='M-20 236 C 180 236 240 76 420 76 S 640 76 660 76'/%3E%3Cpath d='M-20 182 C 150 182 210 22 420 22 S 640 22 660 22'/%3E%3C/g%3E%3C/svg%3E") right center/auto 140% no-repeat,linear-gradient(120deg,#0f766e 0%,#0d9488 45%,#14b8a6 75%,#22c3a6 100%);box-shadow:0 6px 24px -10px rgba(13,148,136,.7)}
@@ -116,7 +116,7 @@ details summary{cursor:pointer;min-height:40px;padding-top:8px}
 
 /* ---- v10 : pas à pas, direct, graphiques, alertes, Terminale ---- */
 body[data-cy="T"]{--acc:#4f46e5;--acc2:#4338ca;--soft:#eef2ff;--sh-hi:0 10px 30px -10px rgba(79,70,229,.45)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) body[data-cy="T"]{--acc:#818cf8;--acc2:#6366f1;--soft:#1e1b4b}}
+:root[data-theme="dark"] body[data-cy="T"]{--acc:#818cf8;--acc2:#6366f1;--soft:#1e1b4b}
 body[data-cy="T"] .out.hi,body[data-cy="T"] .zs .z4{background:linear-gradient(135deg,#4338ca,#6366f1)}
 body[data-cy="T"] .seg.big .chip.on{box-shadow:0 6px 16px -8px rgba(79,70,229,.8)}
 .bincard.cyT{box-shadow:var(--sh),inset 4px 0 0 #6366f1}
