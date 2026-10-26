@@ -1,6 +1,6 @@
 /* Hors ligne : l'outil est gardé sur l'appareil après la 1re ouverture.
    Après une modification, augmenter VERSION (dfp-v1 → dfp-v8…). */
-const VERSION='demi-fond-prof-v12';
+const VERSION='demi-fond-prof-v13';
 // Toutes les applis partagent le même stockage (même adresse github.io) : on n'efface QUE les anciennes versions de CETTE appli.
 const MES_CACHES=/^(?:demi\-fond\-prof\-v|dfp\-v)\d+$/;
 
