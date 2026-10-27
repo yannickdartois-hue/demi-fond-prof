@@ -351,3 +351,8 @@ nav.otop .og{flex:none;align-self:center;font-size:max(12px,var(--fs-min,15px));
 nav.otop .og:first-child{padding-left:0}
 .tag.neuf{background:var(--acc2);margin-left:6px;vertical-align:1px}
 .sig{display:block;font-style:normal;font-size:max(12px,var(--fs-min,15px));font-weight:900;line-height:1;opacity:.8}
+.sig{display:block;font-style:normal;font-size:12px;font-weight:900;line-height:1;opacity:.8}
+.card.ccf{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between}.card.ccf p{margin:0;flex:1 1 300px}
+
+/* bouton mode d'emploi */
+.baide{flex:0 0 auto;width:40px;height:40px;min-height:40px;padding:0;border-radius:50%;font-weight:900;font-size:19px;line-height:1}

@@ -25,11 +25,11 @@ const SESS_S=[
  {id:'s5',n:'S5',t:'Régularité sur 3’',goal:'mes deux 3’ ont moins de 20 m d’écart.',
   crit:['Même allure au 1er et au dernier tour','Écoute les temps de passage','2e moitié aussi longue que la 1re'],blocks:[['i36',105,6],['c3','c3','3’ n°1'],['c3','c3b','3’ n°2'],'ec2',['p130','p','1’30 avec projet']]},
  {id:'s6',n:'S6',t:'Épreuve blanche – 3’ / 10’ / 1’30',goal:'je m’échauffe seul et je repars avec ma note et mon point faible.',eval:true,
-  crit:['Échauffement complet (3 parties)','Projet écrit avant de courir','Départ du 3’ maîtrisé'],blocks:['warm',['c3','c3','C1 · 3’ au plot'],['p130','p','C2 · 1’30 avec projet'],'afl1','pf','vup','situe']},
+  crit:['Échauffement complet (3 parties)','Projet écrit avant de courir','Départ du 3’ maîtrisé'],blocks:['warm',['c3','c3','C1 · 3’ au plot'],['entre','en','Entre le 3’ et le 1’30'],['p130','p','C2 · 1’30 avec projet'],'afl1','pf','vup','situe']},
  {id:'s7',n:'S7',t:'Mon point faible – projet final',goal:'je réussis 3 répétitions sur 4 de mon atelier et je fixe mes projets.',
   crit:['Atelier choisi selon son point faible','Respecte les cibles de l’atelier','Projet final cohérent avec ses chiffres'],blocks:[['i36',110,6],'at',['p130','p','1’30 avec projet final'],'pe']},
  {id:'s8',n:'S8',t:'Évaluation – 3’ / 10’ / 1’30',goal:'mon 3’ est régulier et mon 1’30 arrive en zone 4.',eval:true,
-  crit:['Échauffement seul et complet','Coach précis : tours, mi-course, plot','Allure gérée sur les deux courses'],blocks:['warm',['c3','c3','C1 · 3’ au plot'],['p130','p','C2 · 1’30 avec projet'],'afl1','situe']}
+  crit:['Échauffement seul et complet','Coach précis : tours, mi-course, plot','Allure gérée sur les deux courses'],blocks:['warm',['c3','c3','C1 · 3’ au plot'],['entre','en','Entre le 3’ et le 1’30'],['p130','p','C2 · 1’30 avec projet'],'afl1','situe']}
 ];
 /* ---- Terminale : 9 séances (carnet de Terminale, référentiel du lycée) ---- */
 const R5=n=>Array(n).fill([300,110,'5’']);
@@ -47,11 +47,11 @@ const SESS_T=[
  {id:'t6',n:'T6',t:'Travail du dernier 500 m – résister',goal:'je tiens l’intensité jusqu’au 400 m et mon 1’30 fatigué arrive en zone 3 ou 4.',
   crit:['Bras actifs en fin de course','Tient l’allure dans les 50 derniers m','Projet du 1’30 ajusté'],blocks:['rt',['ser','s','Résistance : 100 à 400 m',[[100,100,'2’'],[200,105,'2’30'],[250,110,'3’'],[300,120,'5’'],[400,125,'']]],['ra2',70,180],['p130','p','1’30 avec projet (fatigué, comme C3)']]},
  {id:'t7',n:'T7',t:'Épreuve blanche – 500 / 500 / 1’30',goal:'je connais ma note AFL1 et le point que je travaille en T8.',eval:true,
-  crit:['Échauffement complet','Stratégie écrite avant chaque course','Faible écart prévu / réalisé'],blocks:['warmT',['c500','e1','C1 · 500 m'],['c500','e2','C2 · 500 m'],['p130','p','C3 · 1’30 avec projet'],'afl1T','pfT','situe','rep']},
+  crit:['Échauffement complet','Stratégie écrite avant chaque course','Faible écart prévu / réalisé'],blocks:['warmT',['c500','e1','C1 · 500 m'],['entre','en','Entre C1 et C2'],['c500','e2','C2 · 500 m'],['entre','en2','Entre C2 et C3'],['p130','p','C3 · 1’30 avec projet'],'afl1T','pfT','situe','rep']},
  {id:'t8',n:'T8',t:'Construire et réaliser ma séance',goal:'ma séance vise mon point faible et je réalise ce que j’ai prévu.',
   crit:['Séance en lien avec son point faible','Distances, % et récups respectés','Projet final réaliste'],blocks:['mine','real8','pfin']},
  {id:'t9',n:'T9',t:'Épreuve – 500 / 500 / 1’30',goal:'je tiens mes passages au 250 m et mon 1’30 arrive en zone 4.',eval:true,
-  crit:['Échauffement seul et complet','Coach précis : passages, plot','Allure gérée sur les 3 courses'],blocks:['warmT',['c500','e1','C1 · 500 m'],['c500','e2','C2 · 500 m'],['p130','p','C3 · 1’30 avec projet'],'afl1T','rep']}
+  crit:['Échauffement seul et complet','Coach précis : passages, plot','Allure gérée sur les 3 courses'],blocks:['warmT',['c500','e1','C1 · 500 m'],['entre','en','Entre C1 et C2'],['c500','e2','C2 · 500 m'],['entre','en2','Entre C2 et C3'],['p130','p','C3 · 1’30 avec projet'],'afl1T','rep']}
 ];
 const CYC={S:{id:'S',label:'Seconde',short:'2nde',sess:SESS_S},T:{id:'T',label:'Terminale',short:'Tle',sess:SESS_T}};
 const SESS=SESS_S;                                      /* compatibilité */

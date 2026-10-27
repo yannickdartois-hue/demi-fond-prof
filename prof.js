@@ -170,6 +170,9 @@ function bandeauSauvegarde(){
 
 /* ---------- Affichage ---------- */
 /* onglets rangés par moment : avant le cycle, pendant la séance, après la séance */
+/* épreuve officielle chronométrée par le prof : l'outil CCF (chrono, temps glissés sur l'élève, barèmes BO 2021) */
+const LIEN_CCF='https://yannickdartois-hue.github.io/CCF-Demi-Fond-PROF/';
+const carteCCF=t=>`<section class="card thin ccf"><p class="small"><b>${t}</b> Pour l’épreuve chronométrée par toi (départ commun, temps glissé sur chaque élève, barèmes officiels), utilise l’outil CCF.</p><a class="btn sm pri" href="${LIEN_CCF}" target="_blank" rel="noopener">Ouvrir CCF demi-fond — prof</a></section>`;
 const ONGLETS=[['Avant'],['classes','Classes'],['Pendant'],['appel','Appel'],['import','Recevoir'],['chrono','Chrono'],['Après'],['seance','Séance'],['eleves','Élèves'],['note','Note'],['pilotage','Pilotage'],['export','Exporter']];
 function rendre(){
   const C=classes();if(P.classe&&!C.includes(P.classe))classeParDefaut();
@@ -177,7 +180,7 @@ function rendre(){
   $('#classes').innerHTML=C.length?`<select id="selClasse" class="in sel" aria-label="Classe">${C.map(c=>`<option${c===P.classe?' selected':''}>${esc(c)}</option>`).join('')}</select>`:'';
   $('#onglets').innerHTML=ONGLETS.map(o=>o.length<2?`<span class="og">${o[0]}</span>`:`<button data-act="vue" data-v="${o[0]}" class="${P.vue===o[0]||(P.vue==='fiche'&&o[0]==='eleves')?'ici':''}">${o[1]}</button>`).join('');
   if(P.vue!=='chrono'&&CH.run)chStop();
-  const Vs={classes:vClasses,import:vImport,appel:vAppel,seance:vSeance,eleves:vEleves,fiche:vFiche,note:vNote,pilotage:vPilotage,chrono:chronoView,export:vExport};
+  const Vs={classes:vClasses,import:vImport,appel:vAppel,seance:vSeance,eleves:vEleves,fiche:vFiche,note:vNote,pilotage:vPilotage,chrono:()=>carteCCF('Épreuve du CCF.')+chronoView(),export:vExport};
   $('#main').innerHTML=icons((DEMO?bandeauDemo():'')+bandeauSauvegarde()+(Vs[P.vue]||vClasses)());
 }
 const render=rendre;                                     /* nom attendu par vues.js et le chrono */
@@ -363,6 +366,8 @@ function detail(k,sid){const e=P.eleves[k];const d=e.seances[sid];const s=SBY[si
   if(d.r8)L.push(['Réalisation',d.r8.map(r=>r?(r.p||'·')+'/'+(r.r||'·'):'·').join(' · ')]);
   if(d.pfin)L.push(['Projet final','100 m '+f(d.pfin.c100)+' · C1 '+f(d.pfin.c1)+' · C2 '+f(d.pfin.c2)+' · 250 '+f(d.pfin.ps)+' · 1’30 '+f(d.pfin.p130)+' m']);
   if(d.situe)L.push(['Se situe','AFL2 degré '+f(d.situe.a2)+' · AFL3 degré '+f(d.situe.a3)]);
+  {const EN={reg:{ok:'régulière',vite:'partie trop vite',lent:'trop prudente'},ress:{aise:'à l’aise',moyen:'ça allait',dur:'en difficulté'},rec:{vite:'récup rapide',lent:'récup lente'}};
+   [['en','Entre deux courses'],['en2','Entre C2 et C3']].forEach(([k,t])=>{const e=d[k];if(e&&typeof e==='object'){const x=['reg','ress','rec'].map(q=>EN[q][e[q]]).filter(Boolean);if(x.length)L.push([t,esc(x.join(' · '))])}})}
   if(d.wc||d.warm)L.push(['Échauffement',(d.wc||[]).map(c=>esc(WARM_NAME[c]||c)).join(', ')+(d.wx?' · '+esc(d.wx):'')+(d.warm?' '+d.warm.filter(Boolean).map(esc).join(' / '):'')+(d.rc?'<br>Récup : '+esc(d.rc)+(d.rc2?' / '+esc(d.rc2):''):'')]);
   if(d.aj)L.push(['Ajustement',esc(d.aj)]);if(d.pe)L.push(['Projets évaluation','3’ '+f(d.pe.v3)+' m · 1’30 '+f(d.pe.p)+' m · '+esc(d.pe.why||'')]);
   if(d.ad)L.unshift(['Présence','pratique adaptée (tolérances élargies)']);if(d.st)L.unshift(['Présence',ST_TXT[d.st]+(d.mot?' · '+esc(d.mot):'')]);
@@ -404,7 +409,7 @@ function sugAFL3(k,e,cy){const c=coachDe(k);const st=Object.values(P.stars[k]||{
   const r=W.reduce((s,x)=>s+x[0]*x[1],0)/W.reduce((s,x)=>s+x[1],0);const dg=r>=0.85?4:r>=0.65?3:r>=0.4?2:1;const mx=AFLMAX(cy,e)[1];
   return {v:Math.min(mx,arr(mx*FR[dg-1]+(st>=2?0.5:0))),d:[c.nf?'contrôle ±'+fc(c.fiab)+' %':'pas de contrôle prof',c.err!=null?'pronostic ±'+c.err+' %':'',c.tot?'aide '+c.yes+'/'+c.tot:''].filter(Boolean).join(' · ')+(st>=2?' · ★ +0,5':'')}}
 function vNote(){if(!P.classe)return pasDeClasse('Note');const cy=clsCy(P.classe),T=cy==='T',ev=T?['t7','t9']:['s6','s8'];
-  return `<section class="card"><h2>Note · ${esc(P.classe)} · ${CYC[cy].label}</h2>
+  return `${cy==='T'?carteCCF('Épreuve T9 (CCF).'):''}<section class="card"><h2>Note · ${esc(P.classe)} · ${CYC[cy].label}</h2>
   <p class="small muted">AFL1 /12 calculé depuis l’épreuve (${T?'T9 : 500 m, 500 m puis 1’30':'S8 : 3’ puis 1’30 avec projet'}) et les barèmes. <b>Suggestions</b> (c’est toi qui décides : « ← » reprend la suggestion) — AFL2 : 2 points sur les projets tenus, le reste sur la préparation (échauffement complet aux épreuves, projets ambitieux, régulation écrite). AFL3 : fiabilité du coach mesurée par tes contrôles (onglet Séance), justesse de ses pronostics, et un peu l’avis du coureur. ★ : +0,5 à partir de deux.${T?' En Terminale, AFL2 + AFL3 = 8 points répartis selon le choix de l’élève (6/2, 4/4 ou 2/6).':''}</p>
   <div class="tw"><table class="tt pt"><tr><th>Élève</th><th>Blanche ${ev[0].toUpperCase()}</th><th>AFL1 /12</th>${T?'<th>Répart.</th>':''}<th>AFL2</th><th>AFL3</th><th>/20</th></tr>
   ${eleves().map(k=>{const e=P.eleves[k];if(!e)return `<tr class="no"><th class="l">${esc(nomAff(k))}</th><td colspan="${T?6:5}">rien reçu</td></tr>`;const run=runOf(e);const b6=aflOf(run,e.seances[ev[0]],cy),e8=aflOf(run,e.seances[ev[1]],cy);

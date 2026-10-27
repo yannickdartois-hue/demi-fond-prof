@@ -209,7 +209,7 @@ function filled(x){if(x==null||x==='')return false;if(Array.isArray(x))return x.
 function stepDone(B,d){const [ty,a1]=B;
   if(ty==='bilan'){const s=SBY[V.sid];return (!s||!voit('rpe',s)||filled(getPath(d,'bl.rpe')))&&(filled(getPath(d,'bl.reu'))||filled(getPath(d,'bl.nx')))}
   if(ty==='c3')return c3dist(d[a1])!=null;if(ty==='p130')return num(d[a1]&&d[a1].ec)!=null;if(ty==='c500')return parseT(d[a1]&&d[a1].t)!=null;
-  if(ty==='txt'||ty==='ser')return filled(d[a1]);if(ty==='warm'||ty==='warmT')return filled(d.wc)||filled(d.warm);return filled(getPath(d,STEP_KEY[ty]||ty))}
+  if(ty==='txt'||ty==='ser'||ty==='entre')return filled(d[a1]);if(ty==='warm'||ty==='warmT')return filled(d.wc)||filled(d.warm);return filled(getPath(d,STEP_KEY[ty]||ty))}
 /* deux temps : sur la piste (le coach note l'essentiel, quelques secondes par course) et en fin de séance (réflexion, bilan) */
 const FIN=['txt','pf','pfT','situe','rep','pe','pfin','afl1','afl1T','ec2','vup'];
 const phaseOf=B=>FIN.includes(B[0])?'fin':'piste';
@@ -307,11 +307,22 @@ function blockView(b,s,run,d,vma){
      <div class="outs">${out('Zone',z?z[1]+(T?' · '+String(z[0]).replace('.',',')+' pt':''):'–','hi')}${out('Distance réalisée',fM(real))}${out('Projet',z?((T?z[0]>=3:z[0]>=2)?(prud?'tenu, mais trop prudent : ne compte pas':'✓ tenu'):'✗'):'–')}</div>
      ${zstrip(T)}</section>`}
   if(ty==='txt')return `<section class="card"><h3>${esc(a2)} ${who('R')}</h3>${txt(a1,d)}</section>`;
+  if(ty==='entre'){const e=d[a1]||{};const T=s.id[0]==='t';const q=(k,o)=>segv(a1+'.'+k,d,o);
+    const tip=e.reg==='vite'?(T?'Pars 1 à 2 s plus lentement au passage du 250 m.':'Pars moins vite : vise le même plot à chaque tour.'):e.reg==='lent'?(T?'Tu peux partir un peu plus vite : vise ton temps de passage.':'Tu as de la marge : vise 10 m de plus.'):e.ress==='dur'||e.rec==='lent'?'Garde le même rythme que la course précédente, relâche les épaules, accélère seulement à la fin.':e.reg==='ok'?'Même allure que la course précédente, puis accélère progressivement dans la seconde moitié.':'';
+    return `<section class="card entre"><h3>${esc(a2)} ${who('R')}</h3>
+     <p class="small"><b>Récupérer en 3 temps</b> <span class="muted">(ne t’assieds pas)</span></p>
+     <ol class="small"><li><b>Marcher</b> 1 à 2 min en soufflant fort par la bouche ; je me couvre.</li><li><b>Étirements doux</b> de 6 à 8 s (mollets, arrière des cuisses), sans douleur ; quelques petites gorgées d’eau.</li><li><b>Trottiner</b> 2 min puis quelques gammes ; je relis mon projet.</li></ol>
+     <p class="small"><b>✎ Ma course était…</b></p>${q('reg',[['ok','régulière'],['vite','partie trop vite'],['lent','trop prudente']])}
+     <p class="small"><b>✎ Je me sentais…</b></p>${q('ress',[['aise','à l’aise'],['moyen','ça allait'],['dur','en difficulté']])}
+     <p class="small"><b>✎ Je récupère…</b></p>${q('rec',[['vite','vite (souffle calme)'],['lent','lentement']])}
+     ${tip?`<p class="calcsteps"><b>Pour la course suivante :</b> ${tip}</p>`:''}
+     <p class="muted small">Tactique : rabats-toi au couloir 1 et ne le quitte que pour dépasser, en ligne droite ; au couloir 2, tu cours plus loin.</p></section>`}
   if(ty==='warm'||ty==='warmT'){const wc=d.wc||[];const n2=WARM_EX[1].filter(x=>wc.includes(x[0])).length;
     return `<section class="card"><h3>1 · Mon échauffement ${who('R')}</h3><p class="muted small">${s.id==='s8'||s.id==='t9'?'Seul, sans fiche : coche ce que tu fais.':'Coche avant de courir ce que tu vas faire.'}</p>
     ${WARM_EX.map((L,p)=>`<p class="small"><b>${['Partie 1 · cardio, 5-6 min','Partie 2 · articulaire et renforcement, 6-7 min','Partie 3 · gammes et accélérations, 5-6 min'][p]}</b>${p===1?` <span class="${n2>=4?'ok':'muted'}">${n2} / 4 exercices au moins</span>`:''}</p><div class="seg wc">${L.map(x=>`<button class="chip sm ${wc.includes(x[0])?'on':''}" data-tog="wc" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>`).join('')}
     <label class="small">Autre chose ${txt('wx',d)}</label>
-    ${ty==='warmT'?`<label>Ma récup entre C1 et C2 ${txt('rc',d,'ex. 3 min footing lent, puis assis, je bois')}</label><label>Ma récup entre C2 et C3 ${txt('rc2',d)}</label>`:''}</section>`}
+    <details class="help"><summary>Pourquoi ces gammes ?</summary><div><p><b>Skipping</b> : pose de pied dynamique, buste droit. <b>Foulées griffées</b> : le pied se pose sous le bassin, sur l’avant du pied. <b>Foulées bondissantes</b> : genou vers l’avant, poussée complète. <b>Accélérations progressives</b> : le cœur et les jambes montent en régime. <b>Accélération à l’allure de course</b> : je règle mon allure avant de partir.</p></div></details>
+    ${ty==='warmT'?`<label>Ma récup entre C1 et C2 ${txt('rc',d,'ex. 2 min marche, étirements doux, 2 min trot, je bois un peu')}</label><label>Ma récup entre C2 et C3 ${txt('rc2',d)}</label>`:''}</section>`}
   if(ty==='afl1'){const a=afl1(run,d);
     return `<section class="card"><h3>Ma note de course (AFL1)</h3>${a?`<div class="outs">${out('3’ /4',a.n3)}${out('1’30 /4',a.n1)}${out('Zone /3',a.z+' ('+a.zl+')')}${out('Régularité /1',a.rg)}${out('AFL1 /12',a.tot,'hi')}</div>`:'<p class="muted">Remplis les deux courses.</p>'}</section>`}
   if(ty==='afl1T'){const a=afl1T(run,d);const f=x=>x==null?'–':String(x).replace('.',',');
