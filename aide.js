@@ -1,5 +1,5 @@
 /* aide.js — mode d'emploi de l'outil prof demi-fond (lu par eps-aide.js) */
-window.EPS_AIDE={appli:'Demi-fond · Outil prof',bouton:false,publics:[
+window.EPS_AIDE={appli:'Demi-fond · Outil prof',bouton:false,pied:'Toutes les données restent sur cet appareil : pensez à la sauvegarde après chaque import.',publics:[
 {id:'prof',titre:'Professeur',chapitres:[
 {t:'Démarrer en 5 minutes',html:`<ol>
 <li><b>Classes</b> : importez la liste Pronote (fichier xlsx/csv, ou liste collée « NOM Prénom »). Une colonne « Sexe » remplit fille/garçon.</li>

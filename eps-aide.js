@@ -22,13 +22,13 @@ html.epsa-lisible body p,html.epsa-lisible body li{line-height:1.6}
 .epsa-btn{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:calc(var(--epsa-bas,16px) + env(safe-area-inset-bottom));z-index:9000;width:46px;height:46px;border-radius:50%;border:2px solid #fff;background:#1c2128;color:#fff;font:900 22px/1 system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.28);cursor:pointer;display:grid;place-items:center}
 .epsa-btn:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
 @media print{.epsa-btn,.epsa-voile{display:none!important}}
-.epsa-voile{position:fixed;inset:0;z-index:9001;background:rgba(8,20,22,.6);display:flex;align-items:stretch;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom))}
-.epsa-fen{background:#fff;color:#1c2128;border-radius:20px;width:100%;max-width:820px;display:flex;flex-direction:column;overflow:hidden;font:17px/1.5 "Atkinson",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;box-shadow:0 30px 60px -20px rgba(0,0,0,.5)}
+.epsa-voile{position:fixed;inset:0;z-index:9001;background:rgba(8,20,22,.6);display:flex;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom))}
+.epsa-fen{background:#fff;color:#1c2128;border-radius:20px;width:100%;max-width:820px;max-height:100%;display:flex;flex-direction:column;overflow:hidden;font:17px/1.5 "Atkinson",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;box-shadow:0 30px 60px -20px rgba(0,0,0,.5)}
 .epsa-tete{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid #dde2e8;flex-wrap:wrap}
 .epsa-tete h2{margin:0;font-size:20px;flex:1 1 200px;line-height:1.2}.epsa-tete h2 small{display:block;font-size:15px;font-weight:600;color:#5b6470}
 .epsa-tete button,.epsa-onglets button{font:inherit;font-weight:800;border-radius:999px;cursor:pointer}
 .epsa-fermer{border:0;background:#1c2128;color:#fff;padding:8px 16px;min-height:44px}
-.epsa-lis{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;padding:4px 0;cursor:pointer}.epsa-lis input{width:22px;height:22px;accent-color:var(--acc,#334155)}
+.epsa-lis{display:flex!important;flex-direction:row!important;margin:0!important;align-items:center;gap:8px;font-size:15px;font-weight:700;padding:4px 0;cursor:pointer}.epsa-lis input{width:22px;height:22px;accent-color:var(--acc,#334155)}
 .epsa-onglets{display:flex;gap:6px;padding:10px 16px;border-bottom:1px solid #dde2e8;flex-wrap:wrap}
 .epsa-onglets button{border:1.5px solid #dde2e8;background:#fff;color:#1c2128;padding:6px 16px;min-height:42px}
 .epsa-onglets button.on{background:var(--acc,#334155);border-color:var(--acc,#334155);color:#fff}
