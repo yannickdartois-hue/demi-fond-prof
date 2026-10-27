@@ -15,14 +15,25 @@ function chronoView(){const r=CH.run;
      <label class="tog"><input type="checkbox" id="chmid" ${CH.mid?'checked':''}> Annoncer la mi-course</label><label class="tog"><input type="checkbox" id="chvoice" ${CH.voice?'checked':''}> Voix (« Partez », « Stop », « Mi-course »)</label>
      <p class="small">Total : <b>${fT(CH.n*CH.w+(CH.n-1)*CH.r)}</b></p><button class="btn pri huge" data-act="chgo">▶ Lancer (départ dans 5 s)</button>`}</section>`}
 function say(t){if(!CH.voice||!window.speechSynthesis)return;try{const u=new SpeechSynthesisUtterance(t);u.lang='fr-FR';u.rate=1.05;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
-function chStart(){CH.run={ph:'pre',i:0,left:5,end:Date.now()+5000,paused:false,beeped:{}};say('Départ dans 5 secondes');try{if(navigator.wakeLock)navigator.wakeLock.request('screen').then(l=>CH.lock=l).catch(()=>{})}catch(e){}
-  clearInterval(CH.h);CH.h=setInterval(chTick,100);render()}
-function chNext(){const r=CH.run;if(r.ph==='pre'||r.ph==='rest'){r.i++;r.ph='run';r.left=CH.w;r.end=Date.now()+CH.w*1000;r.midDone=false;beep(1000,600);say('Partez')}
-  else if(r.ph==='run'){if(r.i>=CH.n||!CH.r){if(r.i>=CH.n){r.ph='done';r.left=0;beep(600,900);say('Stop. Terminé');clearInterval(CH.h);try{CH.lock&&CH.lock.release()}catch(e){}render();return}}
-    r.ph='rest';r.left=CH.r;r.end=Date.now()+CH.r*1000;beep(600,700);say('Stop')}
-  r.beeped={};render()}
+/* le chrono survit au rechargement et à la mise en veille : l'état (heures de fin réelles) est gardé sur l'appareil */
+const CH_CLE='eps-df-chrono';
+function chSave(){try{if(CH.run&&CH.run.ph!=='done')localStorage.setItem(CH_CLE,JSON.stringify({w:CH.w,r:CH.r,n:CH.n,mid:CH.mid,voice:CH.voice,run:CH.run}));else localStorage.removeItem(CH_CLE)}catch(e){}}
+function chLock(){try{if(navigator.wakeLock&&document.visibilityState==='visible')navigator.wakeLock.request('screen').then(l=>CH.lock=l).catch(()=>{})}catch(e){}}
+function chStart(){CH.run={ph:'pre',i:0,left:5,end:Date.now()+5000,paused:false,beeped:{}};say('Départ dans 5 secondes');chLock();
+  clearInterval(CH.h);CH.h=setInterval(chTick,100);chSave();render()}
+function chRestore(){let o=null;try{o=JSON.parse(localStorage.getItem(CH_CLE)||'null')}catch(e){}if(!o||!o.run)return;
+  Object.assign(CH,{w:o.w,r:o.r,n:o.n,mid:o.mid,voice:o.voice,run:o.run});if(typeof chOuvrir==='function')chOuvrir();CH.quiet=true;chTick();CH.quiet=false;
+  if(CH.run&&CH.run.ph!=='done'){clearInterval(CH.h);CH.h=setInterval(chTick,100);chLock()}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&CH.run&&CH.run.ph!=='done'){CH.quiet=true;chTick();CH.quiet=false;chLock()}});
+/* chOuvrir (défini par l'appli) : rouvre l'écran Chrono quand un chrono reprend après rechargement */
+setTimeout(()=>{try{chRestore();if(CH.run)render()}catch(e){}},0);
+function chNext(){const r=CH.run;const T0=r.end;const Q=CH.quiet;const bp=(f,d)=>{if(!Q)beep(f,d)},sy=t=>{if(!Q)say(t)};if(r.ph==='pre'||r.ph==='rest'){r.i++;r.ph='run';r.left=CH.w;r.end=T0+CH.w*1000;r.midDone=false;bp(1000,600);sy('Partez')}
+  else if(r.ph==='run'){if(r.i>=CH.n||!CH.r){if(r.i>=CH.n){r.ph='done';r.left=0;bp(600,900);sy('Stop. Terminé');clearInterval(CH.h);try{CH.lock&&CH.lock.release()}catch(e){}chSave();render();return}}
+    r.ph='rest';r.left=CH.r;r.end=T0+CH.r*1000;bp(600,700);sy('Stop')}
+  r.beeped={};chSave();if(!Q)render()}
 function chTick(){const r=CH.run;if(!r||r.paused||r.ph==='done')return;r.left=(r.end-Date.now())/1000;
-  const s=Math.ceil(r.left);if(s<=3&&s>=1&&!r.beeped[s]){r.beeped[s]=1;beep(880,120)}
-  if(CH.mid&&r.ph==='run'&&!r.midDone&&r.left<=CH.w/2){r.midDone=true;beep(1200,250);say('Mi-course')}
+  if(r.left<-1.5){let g=0;const q=CH.quiet;CH.quiet=true;while(CH.run&&CH.run.ph!=='done'&&(CH.run.end-Date.now())/1000<=0&&g++<500)chNext();CH.quiet=q;render();return}
+  const s=Math.ceil(r.left);if(s<=3&&s>=1&&!r.beeped[s]&&!CH.quiet){r.beeped[s]=1;beep(880,120)}
+  if(CH.mid&&r.ph==='run'&&!r.midDone&&r.left<=CH.w/2){r.midDone=true;if(!CH.quiet){beep(1200,250);say('Mi-course')}}
   if(r.left<=0)return chNext();const t=$('#cht');if(t)t.textContent=fT(Math.ceil(r.left))}
-function chStop(){clearInterval(CH.h);CH.run=null;try{CH.lock&&CH.lock.release()}catch(e){}try{speechSynthesis.cancel()}catch(e){}}
+function chStop(){clearInterval(CH.h);CH.run=null;chSave();try{CH.lock&&CH.lock.release()}catch(e){}try{speechSynthesis.cancel()}catch(e){}}

@@ -356,3 +356,5 @@ nav.otop .og:first-child{padding-left:0}
 
 /* bouton mode d'emploi */
 .baide{flex:0 0 auto;width:40px;height:40px;min-height:40px;padding:0;border-radius:50%;font-weight:900;font-size:19px;line-height:1}
+.badge.st-retard{background:#e0e7ff;color:#3730a3}.badge.st-tenue{background:#fef3c7;color:#92400e}
+.card.rappel-archive{border:2px solid #b45309;background:#fffbeb}.card.rappel-archive h3{color:#92400e}

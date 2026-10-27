@@ -130,7 +130,9 @@ function coachDe(k){const e=P.eleves[k];if(!e)return null;const me=nk(e.full),pr
   return {n,yes,tot,err:er.length?R(moy(er)):null,fiab:moy(fi),nf:fi.length}}
 function coachTxt(k){const c=coachDe(k);if(!c||!c.n)return '–';return [c.nf?`contrôle ±${fc(c.fiab)} %`:'',c.err!=null?`pronostic ±${c.err} %`:'',c.tot?`aide ${c.yes}/${c.tot}`:''].filter(Boolean).join('<br><small>')+(c.nf||c.err!=null||c.tot?'':c.n+' séance'+(c.n>1?'s':''))}
 /* statut d'un élève à une séance (appel) */
-const STATUTS={present:'Présent',disp:'Dispensé / blessé',absent:'Absent',abj:'Absent justifié',oubli:'Oubli d’envoi',rien:'Rien reçu'};
+const STATUTS={present:'Présent',disp:'Dispensé / blessé',absent:'Absent',abj:'Absent justifié',oubli:'Oubli d’envoi',rien:'Rien reçu',retard:'En retard',tenue:'Oubli de tenue'};
+/* retards et oublis de tenue d'un élève sur le cycle (appel manuel) */
+function tenueRetard(k,c){const L=sessOf(clsCy(c||P.classe));let rt=0,tn=0;L.forEach(s=>{const o=P.appel[nk(c||P.classe)+'|'+s.id+'|'+k];if(o==='retard')rt++;if(o==='tenue')tn++});return [rt,tn]}
 function statut(k,sid){const o=P.appel[nk(P.classe)+'|'+sid+'|'+k];if(o)return {c:o,manuel:true};const e=P.eleves[k];const d=e&&e.seances[sid];
   if(!d)return {c:'rien'};if(d.st==='abs')return {c:'absent'};if(d.st==='bl')return {c:'disp'};return {c:'present'}}
 /* alertes pédagogiques de la classe */
@@ -226,9 +228,14 @@ function qrPlein(titre,sous,parts){const d=document.createElement('div');d.class
 async function qrDemarrage(c){const L=P.classesL[c],k=await clePublique();
   const txt=await DFQR.encoder({a:'DFE',v:1,t:'C',c,y:L.cy||'S',l:L.eleves,u:L.lien||'',k});
   qrPlein('Classe '+esc(c)+' · demi-fond '+CYC[L.cy||'S'].label,'Appli élève : « Scanner le QR de la classe » (accueil, ou Groupe → Nouvelle liste de classe)',[txt])}
+/* rappel d'archivage : des séances reçues pendant une année scolaire précédente (l'année scolaire commence le 15 août) */
+const anneeSco=ms=>{const d=new Date(ms);return d.getFullYear()-((d.getMonth()<7||(d.getMonth()===7&&d.getDate()<15))?1:0)};
+function vieilleAnnee(){if(DEMO)return null;const now=anneeSco(Date.now());let old=null;
+  Object.values(P.eleves).forEach(e=>Object.values(e.recu||{}).forEach(r=>{if(r&&r.ts){const y=anneeSco(r.ts*1000);if(y<now&&(old==null||y<old))old=y}}));return old}
+function rappelArchive(){const y=vieilleAnnee();return y==null?'':`<section class="card rappel-archive"><h3>Nouvelle année scolaire</h3><p class="small">L’outil contient encore des séances de ${y}-${y+1}. Archive-les avant d’importer les classes de cette année : la sauvegarde est téléchargée, puis l’outil repart à zéro.</p><button class="btn sm pri" data-act="archiver">Archiver ${y}-${y+1} et repartir à zéro</button></section>`}
 function vClasses(){
   const C=Object.keys(P.classesL).sort((a,b)=>a.localeCompare(b,'fr'));
-  return `${DEMO?'':`<section class="card demo-carte"><h3>👀 Découvrir l’outil (démo)</h3><p class="small muted">Deux classes fictives déjà remplies (Seconde et Terminale) : appel, suivi des séances, fiches élèves, note, pilotage. Rien n’est enregistré et tes vraies données ne sont pas touchées. Idéal pour montrer l’outil à un collègue.</p><div class="row wrap"><button class="btn pri" data-act="demo">Ouvrir la démo</button><a class="btn" href="../demi-fond-eleves/?demo">Démo de l’appli élève</a></div></section>`}
+  return `${rappelArchive()}${DEMO?'':`<section class="card demo-carte"><h3>👀 Découvrir l’outil (démo)</h3><p class="small muted">Deux classes fictives déjà remplies (Seconde et Terminale) : appel, suivi des séances, fiches élèves, note, pilotage. Rien n’est enregistré et tes vraies données ne sont pas touchées. Idéal pour montrer l’outil à un collègue.</p><div class="row wrap"><button class="btn pri" data-act="demo">Ouvrir la démo</button><a class="btn" href="../demi-fond-eleves/?demo">Démo de l’appli élève</a></div></section>`}
   <section class="card"><h2>Classes</h2><h3>Importer une liste Pronote</h3>
     <p class="small muted">Pronote : liste des élèves → Exporter (xlsx, xls ou csv). Avec une colonne « Classe », plusieurs classes s’importent d’un coup ; une colonne « Sexe » remplit fille/garçon. Tu peux aussi coller la liste (un élève par ligne, « NOM Prénom »).</p>
     <div class="row wrap"><label>Classe (si le fichier ne la donne pas)<input id="cl-nom" class="in" placeholder="2nde 3"></label>
@@ -246,7 +253,7 @@ function vClasses(){
 }
 /* ----- Importer ----- */
 function vImport(){const n=Object.values(P.eleves).reduce((s,e)=>s+Object.keys(e.seances).length,0);
-  return `<section class="card"><h2>Récupérer les séances</h2><div class="grid2">
+  return `${rappelArchive()}<section class="card"><h2>Récupérer les séances</h2><div class="grid2">
     <div class="sub"><h3>QR codes</h3><p class="small muted">En fin de séance, chaque élève montre son QR : scanne-les à la suite, la caméra reste ouverte. Les anciens QR du carnet numérique sont aussi acceptés.</p><button class="btn pri big" data-act="scanner">Scanner les QR codes</button></div>
     <div class="sub"><h3>Fichiers</h3><p class="small muted">Les fichiers .json déposés par les élèves, ou le dossier du Nuage téléchargé en .zip. Sur ordinateur, tu peux aussi les glisser ici.</p><label class="btn pri big" for="fic">Choisir des fichiers</label><input id="fic" type="file" multiple accept=".json,.zip,.txt,application/json,application/zip" hidden></div></div>
     <p>${n} séance${n>1?'s':''} d’élèves dans l’outil. Réimporter les mêmes fichiers ne crée pas de doublon.</p>
@@ -300,7 +307,7 @@ function vAppel(){if(!P.classe)return pasDeClasse('Appel');const cy=clsCy(P.clas
     <p>${Object.entries(cpt).map(([c,n])=>`<span class="badge st-${c}">${STATUTS[c]} : ${n}</span>`).join(' ')}</p>
     <div class="tw"><table class="tt l"><tr><th>Élève</th><th>Statut</th><th>Reçu</th><th>Corriger</th></tr>
     ${st.map(([k,x])=>{const e=P.eleves[k],r=e&&e.recu[sid];return `<tr class="st-${x.c}"><td><button class="lnk" data-act="fiche" data-k="${esc(k)}">${esc(nomAff(k))}</button>${inList.has(k)||!inList.size?'':' <span class="badge">hors liste</span>'}</td><td>${STATUTS[x.c]}${x.manuel?' <span class="small muted">(corrigé)</span>':''}</td><td class="small">${r?(r.src==='qr'?'QR':'en ligne')+(r.date?' · '+esc(dateFr(r.date)):''):'–'}</td>
-      <td><select class="in sel" data-appel="${esc(k)}"><option value="">auto</option>${['present','disp','absent','abj','oubli'].map(c=>`<option value="${c}"${x.manuel&&x.c===c?' selected':''}>${STATUTS[c]}</option>`).join('')}</select></td></tr>`}).join('')}</table></div>
+      <td><select class="in sel" data-appel="${esc(k)}"><option value="">auto</option>${['present','retard','tenue','disp','absent','abj','oubli'].map(c=>`<option value="${c}"${x.manuel&&x.c===c?' selected':''}>${STATUTS[c]}</option>`).join('')}</select></td></tr>`}).join('')}</table></div>
     <p class="small muted">Auto : séance reçue = présent ; « absent » ou « blessé / dispensé » coché par le groupe = absent ou dispensé ; rien = rien reçu. « Hors liste » : nom absent de la liste Pronote, à fusionner depuis sa fiche.</p></section>${groupesAppel(sid)}`}
 /* ----- Séance (classe entière) ----- */
 function vSeance(){if(!P.classe)return pasDeClasse('Séance');const cy=clsCy(P.classe),sid=seanceCourante(cy),s=SBY[sid];
@@ -334,7 +341,7 @@ function vFiche(){const k=P.eleve,e=P.eleves[k];if(!e){P.vue='eleves';return vEl
   const prog=progView().replace('<h2>Ma progression</h2>','').replace(/<h3>[^<]*<\/h3>/,'');
   return `<div class="row wrap"><button class="btn sm" data-act="vue" data-v="eleves">← Élèves</button><button class="btn sm" data-act="imprimer">Imprimer la fiche</button></div>
   <section class="card"><h2>${nm(e)} <span class="cls ${cy==="T"?"t":"s"}">${esc(e.classe)} · ${CYC[cy].label}</span></h2>
-   <div class="outs">${out('VMA',fV(vmaDe(e))+' km/h')}${out('Projets tenus',N?TT+' / '+N+' ('+R(100*TT/N)+' %)':'–','hi')}${out('Degré AFL2',dg?DEG_TXT[dg]:'–')}${out('Comme coach',coachTxt(k))}${out('Sexe',e.sexe==='F'?'fille':e.sexe==='G'?'garçon':'?')}</div>
+   <div class="outs">${out('VMA',fV(vmaDe(e))+' km/h')}${out('Projets tenus',N?TT+' / '+N+' ('+R(100*TT/N)+' %)':'–','hi')}${out('Degré AFL2',dg?DEG_TXT[dg]:'–')}${out('Comme coach',coachTxt(k))}${out('Sexe',e.sexe==='F'?'fille':e.sexe==='G'?'garçon':'?')}${(([rt,tn])=>rt||tn?out('Retards · tenue',rt+' · '+tn):'')(tenueRetard(k,e.classe))}</div>
    ${e.sexe?'':`<p class="warn small">Fille ou garçon ? (barèmes différents) <button class="btn sm" data-act="sexe" data-k="${esc(k)}" data-v="F">Fille</button> <button class="btn sm" data-act="sexe" data-k="${esc(k)}" data-v="G">Garçon</button></p>`}</section>
   <section class="card"><h3>Séances</h3><div class="tw"><table class="tt l"><tr><th>Séance</th><th>Statut</th><th>Tenus</th><th>Reçu</th><th>Groupe · coach</th><th>Ce que dit le coach</th></tr>${L.map(s=>{const d=e.seances[s.id],st=statut(k,s.id),r=e.recu[s.id];const [t,n]=d?tenR(run,s.id):[0,0];const bl=(d&&d.bl)||{};
     return `<tr><th>${s.n}</th><td>${STATUTS[st.c]}</td><td>${d&&!d.st?`<button class="cell" data-act="det" data-k="${esc(k)}" data-v="${s.id}">${n?t+'/'+n:'✓'}</button>`:'–'}</td><td class="small">${r?(r.src==='qr'?'QR':'en ligne')+' '+esc(dateFr(r.date)):'–'}</td><td class="small">${(e.groupe[s.id]||[]).map(x=>esc(prenomDe(x))).join(', ')}${e.coach[s.id]?' · coach '+esc(prenomDe(e.coach[s.id].n))+(e.coach[s.id].rep?' (remplaçant)':''):''}</td><td class="small">${esc(bl.reu||'')}${bl.con?' · '+esc(bl.con):''}</td></tr>`}).join('')}</table></div></section>
@@ -435,13 +442,13 @@ function vExport(){return `<section class="card"><h2>Exporter · ${esc(P.classe|
   <div class="sub"><h3>Bilan et note</h3><p class="small muted">Une ligne par élève : VMA, projets tenus par séance, ★, AFL1 (blanche et épreuve), AFL2, AFL3, total /20.</p><button class="btn pri" data-act="csv" data-v="bilan">Télécharger</button></div>
   <div class="sub"><h3>Séances</h3><p class="small muted">Une ligne par élève et par séance : statut, projets tenus, écart, effort, charge, coach, réussite, conseil.</p><button class="btn pri" data-act="csv" data-v="seances">Télécharger</button></div></div></section>`}
 function exporter(type){if(!P.classe)return toast('Choisis une classe.');const cy=clsCy(P.classe),L=sessOf(cy),T=cy==='T',ev=T?['t7','t9']:['s6','s8'];let rows;
-  if(type==='bilan'){rows=[['Classe','Nom','Prénom','Sexe','VMA','Projets tenus','Tentés','%','Degré AFL2',...L.map(s=>s.n+' tenus'),...L.map(s=>s.n+' ★AFL2'),...L.map(s=>s.n+' ★AFL3'),'Blanche AFL1',...(T?['Éval C1 500 m','Éval C2 500 m','Éval 1’30 m','Répartition']:['Éval 3’ m','Éval 1’30 m']),'Éval AFL1','AFL2','AFL3','Total /20']];
+  if(type==='bilan'){rows=[['Classe','Nom','Prénom','Sexe','VMA','Projets tenus','Tentés','%','Degré AFL2',...L.map(s=>s.n+' tenus'),...L.map(s=>s.n+' ★AFL2'),...L.map(s=>s.n+' ★AFL3'),'Blanche AFL1',...(T?['Éval C1 500 m','Éval C2 500 m','Éval 1’30 m','Répartition']:['Éval 3’ m','Éval 1’30 m']),'Éval AFL1','AFL2','AFL3','Total /20','Retards','Oublis de tenue']];
     eleves().forEach(k=>{const e=P.eleves[k];if(!e)return;const run=runOf(e);const [TT,N]=totaux(e);const b6=aflOf(run,e.seances[ev[0]],cy),e8=aflOf(run,e.seances[ev[1]],cy);const a2=num(e.afl2),a3=num(e.afl3);
       const ex=T?[e8&&e8.t1?fT(e8.t1):'',e8&&e8.t2?fT(e8.t2):'',e8&&e8.r130?R(e8.r130):'',AFLMAX(cy,e).join('/')]:[e8?R(e8.d3||0):'',e8?R(e8.r130||0):''];
-      rows.push([e.classe,e.nom,e.prenom,e.sexe||'',fV(vmaDe(e)),TT,N,N?R(100*TT/N):'',degreeOf(TT,N)||'',...L.map(s=>{const x=tenR(run,s.id);return x[1]?x[0]+'/'+x[1]:(e.seances[s.id]&&e.seances[s.id].st)||''}),...L.map(s=>starOf(k,s.id).a2?1:''),...L.map(s=>starOf(k,s.id).a3?1:''),b6&&b6.tot!=null?b6.tot:'',...ex,e8&&e8.tot!=null?e8.tot:'',e.afl2||'',e.afl3||'',e8&&e8.tot!=null&&a2!=null&&a3!=null?R((e8.tot+a2+a3)*10)/10:''])})}
+      rows.push([e.classe,e.nom,e.prenom,e.sexe||'',fV(vmaDe(e)),TT,N,N?R(100*TT/N):'',degreeOf(TT,N)||'',...L.map(s=>{const x=tenR(run,s.id);return x[1]?x[0]+'/'+x[1]:(e.seances[s.id]&&e.seances[s.id].st)||''}),...L.map(s=>starOf(k,s.id).a2?1:''),...L.map(s=>starOf(k,s.id).a3?1:''),b6&&b6.tot!=null?b6.tot:'',...ex,e8&&e8.tot!=null?e8.tot:'',e.afl2||'',e.afl3||'',e8&&e8.tot!=null&&a2!=null&&a3!=null?R((e8.tot+a2+a3)*10)/10:'',...tenueRetard(k).map(x=>x||'')])})}
   else{rows=[['Classe','Élève','Séance','Date','Reçu par','Statut','Projets tenus','Tentés','Écart (m)','Écart 500 m (s)','VMA','Effort (RPE)','Charge (UA)','Coach','Coach remplaçant','Pratique adaptée','Réussite','Conseil','Prochaine fois']];
     eleves().forEach(k=>{const e=P.eleves[k];if(!e)return;L.forEach(s=>{const d=e.seances[s.id];if(!d)return;const r=e.recu[s.id]||{};const [t,n]=tenR(runOf(e),s.id);const bl=d.bl||{};const c=e.coach[s.id];
-      rows.push([e.classe,e.full,s.n,r.date||'',r.src==='qr'?'QR':'fichier',d.st?ST_TXT[d.st]:'présent',n?t:'',n||'',(x=>x==null?'':R(x))(ecartOf(s.id,d)),(x=>x==null?'':R(x))(ecartT(s.id,d)),fV(vmaOf(runOf(e),s.id)),bl.rpe||'',chargeOf(d)||'',c?c.n:'',c&&c.rep?'oui':'',d.ad?'oui':'',bl.reu||'',bl.con||'',bl.nx||''])})})}
+      const sm=statut(k,s.id);rows.push([e.classe,e.full,s.n,r.date||'',r.src==='qr'?'QR':'fichier',sm.manuel?STATUTS[sm.c]:d.st?ST_TXT[d.st]:'présent',n?t:'',n||'',(x=>x==null?'':R(x))(ecartOf(s.id,d)),(x=>x==null?'':R(x))(ecartT(s.id,d)),fV(vmaOf(runOf(e),s.id)),bl.rpe||'',chargeOf(d)||'',c?c.n:'',c&&c.rep?'oui':'',d.ad?'oui':'',bl.reu||'',bl.con||'',bl.nx||''])})})}
   telecharger('DF_'+slug(P.classe)+'_'+type+'.csv',csv(rows))}
 
 /* ---------- Évènements ---------- */
@@ -480,7 +487,7 @@ document.addEventListener('click',async ev=>{
       /* le nom fusionné devient un alias : les prochains envois sous ce nom iront dans la bonne fiche */
       P.alias[src]=dst;delete P.eleves[src];break}
     case 'chgo':beep(700,60);return chStart();
-    case 'chpause':{const r=CH.run;if(!r)return;if(r.paused){r.end=Date.now()+r.left*1000;r.paused=false}else r.paused=true;return rendre()}
+    case 'chpause':{const r=CH.run;if(!r)return;if(r.paused){r.end=Date.now()+r.left*1000;r.paused=false}else r.paused=true;chSave();return rendre()}
     case 'chstop':chStop();return rendre();
     case 'demoQuitter':location.href=location.pathname;return;
     case 'demo':window.scrollTo(0,0);return ouvrirDemoProf();
@@ -506,3 +513,6 @@ $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()})
 if('serviceWorker' in navigator&&location.protocol==='https:'){let had=!!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had){const u=$('#upd');u.innerHTML='Nouvelle version de l’outil installée. <button class="btn sm" data-act="reload">Recharger</button>';u.classList.add('on')}had=true});
   navigator.serviceWorker.register('sw.js').then(r=>r.update().catch(()=>{})).catch(()=>{})}
+
+/* chrono qui reprend après rechargement : on rouvre son écran */
+function chOuvrir(){P.vue='chrono'}
