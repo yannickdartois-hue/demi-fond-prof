@@ -366,3 +366,9 @@ table.pt.compact .cell i{display:inline;margin-left:3px;font-size:13px}
 table.pt.compact .sig{display:inline!important;margin-right:4px}
 /* iPad en portrait : si le tableau défile, la colonne des noms reste visible */
 table.pt th.l{position:sticky;left:0;z-index:1}
+/* iPad : les onglets tiennent sur une ligne ; « Avant / Pendant / Après » deviennent un simple séparateur */
+@media (max-width:1180px){
+  nav.otop .og{font-size:0;padding:0;margin:0 4px;width:1px;align-self:stretch;background:var(--line,#dde2e8)}
+  nav.otop button{padding-left:12px;padding-right:12px}
+}
+@media (max-width:900px){nav.otop{gap:4px}nav.otop button{padding-left:9px;padding-right:9px;font-size:14px}}
