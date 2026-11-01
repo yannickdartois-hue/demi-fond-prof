@@ -117,7 +117,7 @@ const prenomDe=n=>{const w=String(n||'').trim().split(/\s+/);const pre=w.filter(
 const nomDe=n=>{const w=String(n||'').trim().split(/\s+/);const up=w.filter(x=>x===x.toUpperCase()&&/[A-ZÀ-Ý]/.test(x));return up.length?up.join(' '):(w.length>1?w[w.length-1]:'')};
 function slug(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'').slice(0,24)}
 function nomFichier(classe,eleve,sid,suffixe){const nom=nomDe(eleve),pre=prenomDe(eleve);
-  return (slug(classe)||'Classe')+'_'+(slug(nom)+slug(pre).slice(0,1).toUpperCase()||'Eleve')+'_'+String(sid).toUpperCase()+(suffixe?'_'+suffixe:'')+'.json'}
+  return (slug(classe)||'Classe')+'_'+(slug(nom)+(pre?'_'+slug(pre):'')||'Eleve') /* prénom complet : deux élèves de même nom ne doivent pas donner le même fichier */+'_'+String(sid).toUpperCase()+(suffixe?'_'+suffixe:'')+'.json'}
 /* ---- fiche « séance d'un élève » (fichier JSON et QR) ----
    run = {nom complet, sexe, vmaManuelle, seances:{sid:{…}}} */
 function ctxSeance(run,sid){const d=run.seances&&run.seances[sid];if(!d)return null;const v=(num(d.vj)||vmaOf(run,sid));
