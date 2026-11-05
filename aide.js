@@ -1,6 +1,13 @@
 /* aide.js — mode d'emploi de l'outil prof demi-fond (lu par eps-aide.js) */
 window.EPS_AIDE={appli:'Demi-fond · Outil prof',bouton:false,pied:'Toutes les données restent sur cet appareil : pensez à la sauvegarde après chaque import.',publics:[
 {id:'prof',titre:'Professeur',chapitres:[
+{t:'🚶 Parcours marche (asthme, avis médical)',html:`<ul>
+<li>Pour un élève dont l’asthme ou un certificat d’inaptitude partielle justifie de marcher : dans son carnet, onglet Groupe → <b>Parcours marche</b>, sur son nom. Son camarade continue à courir et le coache.</li>
+<li>Mêmes numéros de séance que la classe (code du cours, appel, envoi communs), mais des séances de marche : technique et mesure de la vitesse de marche (3’ à fond ÷ 50), allures, 1000 m, fractionné, projets.</li>
+<li><b>Terminale</b> : épreuve 2 × 1000 m + 3’ (barème « marche fractionnée adaptée »). <b>Seconde</b> : épreuve allégée 1000 m + 3’, mêmes tables.</li>
+<li>AFL1 /12 = performance /8 (moyenne : temps des 1000 m, distance en 3’) + projet de distance sur 3’ /4 (à 5 m près = 4).</li>
+<li>Dans les tableaux, l’élève porte 🚶 ; le détail d’une séance signale s’il a été gêné pour respirer.</li>
+</ul><p class="astuce">Ce n’est pas automatique pour tout asthmatique : un asthme suivi et traité permet souvent de courir. Le parcours se décide avec l’avis médical.</p>`},
 {t:'🔑 Code du cours (chaque cours)',html:`<ol>
 <li>Les élèves utilisent leur téléphone : sans verrou, ils pourraient remplir chez eux des séances à l’avance. Le code du cours l’empêche.</li>
 <li>Début de cours : Classes → <span class="bouton">🔑 Code du cours</span>, vérifiez la séance, écrivez les 4 chiffres au tableau.</li>

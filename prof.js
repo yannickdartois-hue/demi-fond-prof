@@ -31,7 +31,7 @@ try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}ca
 function cleEleve(classe,nom){let k=nk(classe)+'|'+nk(nom);const seen=new Set();while(P.alias[k]&&!seen.has(k)){seen.add(k);k=P.alias[k]}return k}
 const nomAff=k=>{const e=P.eleves[k];return e?e.full:k.split('|')[1]};
 const nomTri=k=>{const e=P.eleves[k];return e?(e.nom+' '+e.prenom):k};
-const nm=e=>'<b>'+esc((e.nom||'').toUpperCase())+'</b> '+esc(e.prenom||'');
+const nm=e=>'<b>'+esc((e.nom||'').toUpperCase())+'</b> '+esc(e.prenom||'')+(e.pc==='m'?' <span title="Parcours marche (asthme, avis médical)">🚶</span>':'');
 function eleveDe(classe,full,cy){const k=cleEleve(classe,full);let e=P.eleves[k];
   if(!e)e=P.eleves[k]={classe,cy:cy||clsCy(classe),full,prenom:prenomDe(full),nom:nomDe(full),sexe:'',vmaManuelle:'',seances:{},recu:{},groupe:{},coach:{}};
   return [k,e]}
@@ -42,7 +42,7 @@ function ajouterSeance(r){
   if(!r.eleve||!SBY[r.seance])throw new Error('séance incomplète');
   const [k,e]=eleveDe(r.classe,r.eleve,r.cy);const old=e.recu[r.seance];
   if(old&&(old.ts||0)>=(r.ts||0)&&r.ts)return [k,'déjà à jour'];
-  e.cy=r.cy||e.cy;if(r.sexe)e.sexe=r.sexe;if(r.vmaManuelle)e.vmaManuelle=r.vmaManuelle;
+  e.cy=r.cy||e.cy;if(r.sexe)e.sexe=r.sexe;if(r.pc!==undefined)e.pc=r.pc||'';if(r.vmaManuelle)e.vmaManuelle=r.vmaManuelle;
   e.seances[r.seance]=r.d||{};e.recu[r.seance]={ts:r.ts||0,src:r.src,date:r.date||''};
   if(r.groupe&&r.groupe.length)e.groupe[r.seance]=r.groupe;if(r.coach)e.coach[r.seance]={n:r.coach,rep:!!r.coachRemplacant};
   if(!P.classesL[r.classe])P.classesL[r.classe]={eleves:[],lien:'',cy:r.cy||'S'};
@@ -52,17 +52,17 @@ function importerObjet(o){
   if(o&&o.carnetDF)throw new Error('C’est la sauvegarde d’une tablette (« Reprendre un carnet » côté élève), pas un fichier de séance.');
   if(!o||o.app!=='demi-fond-eleves')throw new Error('fichier non reconnu');
   const ts=Math.round((Date.parse(o.exportedAt)||0)/1000);
-  const [k,res]=ajouterSeance({classe:o.classe||'',cy:o.cycle,eleve:o.eleve,sexe:o.sexe,seance:o.seance,date:o.date,ts,src:'fichier',groupe:o.groupe,coach:o.coach,coachRemplacant:o.coachRemplacant,vmaManuelle:o.vmaManuelle,d:o.donnees});
+  const [k,res]=ajouterSeance({classe:o.classe||'',cy:o.cycle,eleve:o.eleve,sexe:o.sexe,seance:o.seance,date:o.date,ts,src:'fichier',groupe:o.groupe,coach:o.coach,coachRemplacant:o.coachRemplacant,vmaManuelle:o.vmaManuelle,pc:o.parcours==='marche'?'m':'',d:o.donnees});
   return o.eleve+' · '+SBY[o.seance].n+' ('+res+')';
 }
 function importerQR(q){
   if(q.t==='C')throw new Error('C’est le QR de démarrage de la classe (pour les tablettes).');
   if(q.t==='T')throw new Error('C’est un QR de changement de groupe (pour une tablette d’élève).');
   if(q.t==='G'){/* QR d'un binôme : la séance de chaque élève */
-    const L=(q.R||[]).map(r=>{const [k,res]=ajouterSeance({classe:q.c||'',cy:q.y,eleve:r.e,sexe:r.x,seance:q.s,date:q.d,ts:q.ts||0,src:'qr',groupe:q.gr,coach:r.co,coachRemplacant:!!r.cr,vmaManuelle:r.m,d:r.D});return prenomDe(r.e)+' ('+res+')'});
+    const L=(q.R||[]).map(r=>{const [k,res]=ajouterSeance({classe:q.c||'',cy:q.y,eleve:r.e,sexe:r.x,seance:q.s,date:q.d,ts:q.ts||0,src:'qr',groupe:q.gr,coach:r.co,coachRemplacant:!!r.cr,vmaManuelle:r.m,pc:r.pc||'',d:r.D});return prenomDe(r.e)+' ('+res+')'});
     return SBY[q.s].n+' · '+L.join(', ')}
   if(q.t!=='S')throw new Error('QR non reconnu.');
-  const [k,res]=ajouterSeance({classe:q.c||'',cy:q.y,eleve:q.e,sexe:q.x,seance:q.s,date:q.d,ts:q.ts||0,src:'qr',groupe:q.gr,coach:q.co,coachRemplacant:!!q.cr,vmaManuelle:q.m,d:q.D});
+  const [k,res]=ajouterSeance({classe:q.c||'',cy:q.y,eleve:q.e,sexe:q.x,seance:q.s,date:q.d,ts:q.ts||0,src:'qr',groupe:q.gr,coach:q.co,coachRemplacant:!!q.cr,vmaManuelle:q.m,pc:q.pc||'',d:q.D});
   return q.e+' · '+SBY[q.s].n+' ('+res+')';
 }
 /* anciens QR du carnet numérique (DF2 = fin de séance, DF3 = rattrapage, DFP = morceaux) */
@@ -111,7 +111,7 @@ const liste=()=>(P.classesL[P.classe]||{eleves:[]}).eleves;
 function eleves(c){c=c||P.classe;const s=new Set();(P.classesL[c]||{eleves:[]}).eleves.forEach(n=>{const [k]=eleveDe(c,n);s.add(k)});
   Object.entries(P.eleves).forEach(([k,e])=>{if(e.classe===c&&!P.alias[k])s.add(k)});
   return [...s].sort((a,b)=>nomTri(a).localeCompare(nomTri(b),'fr'))}
-const runOf=e=>({sexe:e.sexe,seances:e.seances,vmaManuelle:e.vmaManuelle});
+const runOf=e=>({sexe:e.sexe,seances:e.seances,vmaManuelle:e.vmaManuelle,pc:e.pc||''});
 const starOf=(k,sid)=>(P.stars[k]&&P.stars[k][sid])||{};
 function totaux(e){let T=0,N=0;sessOf(e.cy).forEach(s=>{const [t,n]=tenR(runOf(e),s.id);T+=t;N+=n});return [T,N]}
 const fc=x=>x==null||x===''?'–':String(x).replace('.',',');
@@ -152,7 +152,7 @@ function alertes(c){const cy=clsCy(c),L=sessOf(cy),K=eleves(c);const out=[];
     if(done.length>=3&&!done.some(s=>(e.seances[s.id].bl||{}).reu))out.push(['coach',`${nm(e)} : son coach n’a jamais écrit « Ta réussite » (${done.length} séances)`]);
   });return out}
 const ICA={qr:'📵',ko:'🎯',vma:'✎',abs:'🚫',coach:'⏱',rpe:'💡'};
-function vmaDe(e){const L=sessOf(e.cy);return vmaOf(runOf(e),L[L.length-1].id)}
+function vmaDe(e){const L=sessOf(e.cy),r=runOf(e);return isM(r)?vmmOf(r,L[L.length-1].id):vmaOf(r,L[L.length-1].id)}
 const heat=r=>r>=0.75?'h3':r>=0.5?'h2':r>=0.25?'h1':'h0';
 /* signe en plus de la couleur (daltonisme : rouge et vert se confondent pour 8 % des garçons) */
 const sig=r=>`<em class="sig">${r>=0.75?'✓✓':r>=0.5?'✓':r>=0.25?'!':'✗'}</em>`;
@@ -357,8 +357,15 @@ function vFiche(){const k=P.eleve,e=P.eleves[k];if(!e){P.vue='eleves';return vEl
 async function qrReprise(k){const e=P.eleves[k];const se={};Object.entries(e.seances).forEach(([sid,d])=>{if(hasData(d))se[sid]=d});
   const txt=await DFQR.encoder({a:'DFE',v:1,t:'T',c:e.classe,y:e.cy,e:e.full,x:e.sexe||'',vm:e.vmaManuelle||'',se});
   qrPlein(esc(e.full)+' · reprise','Appli élève : Groupe → « Scanner le QR de l’élève »',morceaux(txt))}
-function detail(k,sid){const e=P.eleves[k];const d=e.seances[sid];const s=SBY[sid];const run=runOf(e);const T=sid[0]==='t';
+function detail(k,sid){const e=P.eleves[k];const d=e.seances[sid];const run=runOf(e);const s=sessFor(run,sid);const T=sid[0]==='t';
   const [t,n]=tenR(run,sid);const a=s.eval?aflOf(run,d,T?'T':'S'):null;const bl=d.bl||{};const L=[];const vma=vmaOf(run,sid);const f=x=>esc(x==null||x===''?'–':x);
+  if(isM(run)){L.push(['Parcours','🚶 marche (asthme, avis médical)']);
+    if(d.mw)L.push(['Échauffement',d.mw.length+' / 5 · '+(d.mw.includes('inh')?'inhalateur sur lui/elle':'<span class="warn">inhalateur non coché</span>')]);if(d.mt)L.push(['Technique (coach)',d.mt.length+' / 5 critères']);
+    if(d.mx)L.push(['3’ à fond',fM(m3dist(d.mx))+' · '+fV(m3dist(d.mx)/50)+' km/h']);
+    [['q','3’ projet'],['q2','3’ n°2']].forEach(([k,l])=>{if(d[k]){const x=m3dist(d[k]),v=num(d[k].v);L.push([l,f(v)+' m annoncés → '+fM(x)+(x!=null&&v!=null?' (écart '+(x-v>=0?'+':'')+R(x-v)+' m · '+projM(x-v)+'/4)':'')])}});
+    [['k1','1000 m'],['k2','1000 m n°2'],['w1','C1 · 1000 m'],['w2','C2 · 1000 m']].forEach(([k,l])=>{if(d[k]){const t=parseT(d[k].t),p=parseT(d[k].tp);L.push([l,(p?fT(p)+' visé → ':'')+(t?fT(t):'–')+(d[k].ps?' · passage '+esc(d[k].ps):'')])}});
+    if(d.ma)L.push(['Allures 70/80/90 %',d.ma.map(x=>x==null?'·':x+' m').join(' · ')]);if(d.mf)L.push(['3 × 3’ (annoncé/réalisé)',d.mf.map(r=>r?(r.v||'·')+'/'+(r.r||'·'):'·').join(' · ')]);
+    ['en','en2'].forEach(k=>{if(d[k]&&d[k].ress==='dur')L.push(['⚠ Respiration','gêné(e) pour respirer pendant la récupération'])});}
   if(d.i36)L.push(['36"/36"',d.i36.map(x=>x||'·').join(' ')]);
   if(d.al)L.push(['4 allures (annonce/réalisé)',d.al.map(r=>r?(r.an||'·')+'/'+(r.re||'·')+fcRecTxt(r):'·').join(d.al.some(r=>r&&r.fc)?'<br>':' · ')]);
   if(d.ct)L.push(['Contrat de tours',d.ct.map(r=>r?(r.c||'·')+'/'+(r.r||'·'):'·').join(' · ')]);
@@ -424,7 +431,8 @@ function sugAFL3(k,e,cy){const c=coachDe(k);const st=Object.values(P.stars[k]||{
    AFL1 : meilleure performance de S6 et de S8 sur chaque course (3' et 1'30) ; zone et régularité prises à S8,
    ou à S6 en rattrapage si S8 manque. Une note « figée » ne bouge plus si un barème change.
    Note /20 = (AFL1 /12 + AFL2 /4 + AFL3 /4) × 0,8 + participation /4. */
-function afl1Sec(run,e){const b=afl1(run,e.seances.s6),f=afl1(run,e.seances.s8);if(!b&&!f)return null;const ref=f||b;
+function afl1Sec(run,e){if(isM(run)){const f=aflM(run,e.seances.s8,'S'),b=aflM(run,e.seances.s6,'S');return f||b?Object.assign({},f||b,{rattrapage:!f}):null}
+  const b=afl1(run,e.seances.s6),f=afl1(run,e.seances.s8);if(!b&&!f)return null;const ref=f||b;
   const n3=Math.max(b?b.n3:0,f?f.n3:0),n1=Math.max(b?b.n1:0,f?f.n1:0);
   return Object.assign({},ref,{n3,n1,tot:n3+n1+ref.z+ref.rg,rattrapage:!f})}
 const a1Sec=(run,e)=>e.fige&&e.fige.a1?Object.assign({},e.fige.a1,{figeLe:e.fige.ts}):afl1Sec(run,e);
@@ -441,7 +449,7 @@ document.addEventListener('click',ev=>{if(!ev.target.closest('[data-notedet]'))r
 function vNote(){if(!P.classe)return pasDeClasse('Note');const cy=clsCy(P.classe),T=cy==='T',ev=T?['t7','t9']:['s6','s8'];
   return `${cy==='T'?carteCCF('Épreuve T9 (CCF).'):''}<section class="card"><h2>Note · ${esc(P.classe)} · ${CYC[cy].label}</h2>
   <div class="row wrap noprint"><button class="btn sm" type="button" data-notedet="1" aria-pressed="${NOTE_DET}">${NOTE_DET?'Masquer le détail des calculs':'Afficher le détail des calculs'}</button><button class="btn sm" type="button" data-act="sugall" title="Ne remplit que les cases vides : tes notes déjà saisies ne sont pas touchées">Reprendre toutes les suggestions (cases vides)</button>${T?'':(eleves().some(k=>P.eleves[k]&&P.eleves[k].fige)?'<button class="btn sm" type="button" data-act="defiger">Défiger l’AFL1 (recalculer)</button>':'<button class="btn sm" type="button" data-act="figer">Figer l’AFL1 du jour</button>')}</div>
-  <details class="small muted noprint"><summary>Comment sont calculées la note et les suggestions</summary><p>AFL1 /12 calculé depuis l’épreuve (${T?'T9 : 500 m, 500 m puis 1’30':'S6 et S8 : meilleure performance sur le 3’ et sur le 1’30 ; zone et régularité de S8, ou de S6 en rattrapage si S8 manque'}) et les barèmes. <b>Suggestions</b> (c’est toi qui décides : « ← » reprend la suggestion) — AFL2 : 2 points sur les projets tenus, le reste sur la préparation (échauffement complet aux épreuves, projets ambitieux, régulation écrite). AFL3 : fiabilité du coach mesurée par tes contrôles (onglet Séance), justesse de ses pronostics, et un peu l’avis du coureur. ★ : +0,5 à partir de deux.${T?' En Terminale, AFL2 + AFL3 = 8 points répartis selon le choix de l’élève (6/2, 4/4 ou 2/6).':' <b>Note /20</b> = (AFL1 + AFL2 + AFL3) × 0,8 + participation /4. Participation : 4 − 1 par absence non justifiée − 0,5 par retard, oubli de tenue ou oubli d’envoi (onglet Appel ; une absence cochée par le groupe compte comme non justifiée tant que tu ne la passes pas en « Absent justifié »). <b>Figer</b> enregistre l’AFL1 du jour : il ne bougera plus si un barème change.'}</p></details>
+  <details class="small muted noprint"><summary>Comment sont calculées la note et les suggestions</summary><p><b>🚶 Parcours marche</b> (élève asthmatique ou avis médical, choisi dans son carnet) : AFL1 /12 = performance /8 (moyenne de la note ${T?'des 2 × 1000 m, temps total':'du 1000 m'} et de la distance en 3’, barème « marche fractionnée adaptée ») + projet de distance sur 3’ /4. AFL1 /12 calculé depuis l’épreuve (${T?'T9 : 500 m, 500 m puis 1’30':'S6 et S8 : meilleure performance sur le 3’ et sur le 1’30 ; zone et régularité de S8, ou de S6 en rattrapage si S8 manque'}) et les barèmes. <b>Suggestions</b> (c’est toi qui décides : « ← » reprend la suggestion) — AFL2 : 2 points sur les projets tenus, le reste sur la préparation (échauffement complet aux épreuves, projets ambitieux, régulation écrite). AFL3 : fiabilité du coach mesurée par tes contrôles (onglet Séance), justesse de ses pronostics, et un peu l’avis du coureur. ★ : +0,5 à partir de deux.${T?' En Terminale, AFL2 + AFL3 = 8 points répartis selon le choix de l’élève (6/2, 4/4 ou 2/6).':' <b>Note /20</b> = (AFL1 + AFL2 + AFL3) × 0,8 + participation /4. Participation : 4 − 1 par absence non justifiée − 0,5 par retard, oubli de tenue ou oubli d’envoi (onglet Appel ; une absence cochée par le groupe compte comme non justifiée tant que tu ne la passes pas en « Absent justifié »). <b>Figer</b> enregistre l’AFL1 du jour : il ne bougera plus si un barème change.'}</p></details>
   <div class="tw"><table class="tt pt"><tr><th>Élève</th><th>Blanche ${ev[0].toUpperCase()}</th><th>AFL1 /12</th>${T?'<th>Répart.</th>':''}<th>AFL2</th><th>AFL3</th>${T?'':'<th>Part. /4</th>'}<th>/20</th></tr>
   ${eleves().map(k=>{const e=P.eleves[k];if(!e)return `<tr class="no"><th class="l">${esc(nomAff(k))}</th><td colspan="6">rien reçu</td></tr>`;const run=runOf(e);const b6=aflOf(run,e.seances[ev[0]],cy),e8=T?aflOf(run,e.seances[ev[1]],cy):a1Sec(run,e);
     const mx=AFLMAX(cy,e);const s2=sugAFL2(e,cy),s3=sugAFL3(k,e,cy);const sp=T?null:sugPart(k);const tot=noteTot(e,cy,e8);

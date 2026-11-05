@@ -49,7 +49,7 @@ function ambition(ty,d,a1){const v=num(d._v),ref=num(d._ref);
   return true}
 function tenus(sid,d){
   if(!d||d.st)return [0,0];let t=0,n=0;const add=ok=>{n++;if(ok)t++};
-  const s=SBY[sid],v=num(d._v),T=cyOfSid(sid)==='T',ad=!!d.ad;          /* ad = pratique adaptée : tolérances élargies */
+  const s=(d._mar&&SBYM[sid])||SBY[sid],v=num(d._v),T=cyOfSid(sid)==='T',ad=!!d.ad;          /* ad = pratique adaptée : tolérances élargies */
   s.blocks.forEach(b=>{const [ty,a1,a2,a3]=bk(b);
     if(ty==='i36'||ty==='i36m')(d.i36||[]).forEach(x=>{if(x)add(x==='P')});
     if(ty==='al4')(d.al||[]).forEach(r=>{const a=num(r&&r.an),e=num(r&&r.re);if(a!=null&&e!=null)add(Math.abs(a-e)<=(ad?2:1))});
@@ -62,6 +62,10 @@ function tenus(sid,d){
     if(ty==='i112')(d.c112||[]).forEach(x=>{const c=num(x);if(c!=null&&v)add(Math.abs(c-v*a1/100)<=(ad?2:1))});
     if(ty==='c500'){const c=d[a1]||{};const tt=parseT(c.t),pj=parseT(c.tp);if(tt!=null&&pj!=null)add(Math.abs(tt-pj)<=(ad?4:2)&&ambition(ty,d,a1))}
     if(ty==='rel5'){const vv=parseT(d.rlv),tt=parseT(d.rlt);if(vv!=null&&tt!=null)add(Math.abs(tt-vv)<=30)}
+    if(ty==='m3'&&a1!=='mx'){const c=d[a1];const vv=num(c&&c.v),dd=m3dist(c);if(vv!=null&&dd!=null)add(Math.abs(dd-vv)<=10)}
+    if(ty==='m1000'){const c=d[a1]||{};const tt=parseT(c.t),pj=parseT(c.tp);if(tt!=null&&pj!=null)add(Math.abs(tt-pj)<=10)}
+    if(ty==='mall')(d.ma||[]).forEach((x,i)=>{const r=num(x);if(r!=null&&v)add(Math.abs(r-dist(120,v*[70,80,90][i]/100))<=10)});
+    if(ty==='mfr')(d.mf||[]).forEach(r=>{const a=num(r&&r.v),e=num(r&&r.r);if(a!=null&&e!=null)add(Math.abs(a-e)<=10)});
     if(ty==='real8')(d.r8||[]).forEach(r=>{const p=parseT(r&&r.p),x=parseT(r&&r.r);if(p!=null&&x!=null)add(Math.abs(p-x)<=(ad?4:2))});
   });
   return [t,n];
@@ -92,7 +96,27 @@ function afl1T(run,d){                                  /* Terminale (/12) : per
   const perf=[n1,n2,n3].every(x=>x!=null)?R((n1+n2+n3)/3*10)/10:null;const z=zoneT(e);
   return {n1,n2,n3,perf,z:z?z[0]:null,zl:z?z[1]:'–',tot:perf!=null&&z?R((perf+z[0])*10)/10:null,t1,t2,r130};
 }
-const aflOf=(run,d,cy)=>cy==='T'?afl1T(run,d):afl1(run,d);
+/* ---- PARCOURS MARCHE ---- */
+const isM=run=>!!(run&&run.pc==='m');
+const sessFor=(run,sid)=>(isM(run)&&SBYM[sid])||SBY[sid];
+function m3dist(c){if(!c)return null;const t=num(c.t),p=num(c.pl);if(t==null&&p==null)return null;return (t||0)*200+(p||0)}
+/* vitesse de marche (km/h) = distance du dernier 3’ « à fond » ÷ 50 */
+function vmmOf(run,sid){const L=sessOf(cyOfSid(sid)),i=L.findIndex(s=>s.id===sid);for(let k=i;k>=0;k--){const x=run.seances&&run.seances[L[k].id];const dd=x&&m3dist(x.mx);if(dd)return dd/50}return null}
+/* temps : note de la ligne atteinte (il faut être au moins aussi rapide) */
+function noteMt(tab,t){if(t==null)return null;const L=BARM[tab];for(let i=0;i<L.length;i++)if(t<=L[i])return BARM.notes[i];return 0}
+/* distance en 3’ : répartition régulière entre deux lignes, arrondie au quart de point le plus proche */
+function noteMd(sx,dd){if(dd==null)return null;const A=BARM.D3[sx==='F'?'F':'G'];if(dd>=A[0][1])return 8;
+  for(let i=0;i<A.length-1;i++){const [n1,d1]=A[i],[n2,d2]=A[i+1];if(dd>=d2)return Math.round((n2+(n1-n2)*(dd-d2)/(d1-d2))*4)/4}return 0}
+/* projet de distance sur 3’ /4 : écart = réalisé − annoncé */
+function projM(e){if(e==null)return null;const a=Math.abs(e);if(a<=5)return 4;if(e>0)return e<=15?3:2;return e>=-15?2:e>=-25?1:0}
+function aflM(run,d,cy){if(!d)return null;const sx=run.sexe==='F'?'F':'G',T=cy==='T';
+  const t1=parseT(d.w1&&d.w1.t),t2=parseT(d.w2&&d.w2.t),dd=m3dist(d.q),pr=num(d.q&&d.q.v);
+  if(t1==null&&t2==null&&dd==null)return null;
+  const nt=T?(t1!=null&&t2!=null?noteMt(sx+'2000',t1+t2):null):(t1!=null?noteMt(sx+'1000',t1):null),n3=noteMd(sx,dd);
+  const perf=nt!=null&&n3!=null?R((nt+n3)/2*100)/100:null,pj=dd!=null&&pr!=null?projM(dd-pr):null;
+  return {marche:true,nt,n3,perf,pj,d3:dd,e:dd!=null&&pr!=null?dd-pr:null,tot:perf!=null&&pj!=null?R((perf+pj)*100)/100:null,t1,t2,dd,pr};
+}
+const aflOf=(run,d,cy)=>isM(run)?aflM(run,d,cy):cy==='T'?afl1T(run,d):afl1(run,d);
 
 /* ---- format compact pour le QR ---- */
 const CUT=(s,n)=>String(s||'').slice(0,n);
@@ -120,11 +144,11 @@ function nomFichier(classe,eleve,sid,suffixe){const nom=nomDe(eleve),pre=prenomD
   return (slug(classe)||'Classe')+'_'+(slug(nom)+(pre?'_'+slug(pre):'')||'Eleve') /* prénom complet : deux élèves de même nom ne doivent pas donner le même fichier */+'_'+String(sid).toUpperCase()+(suffixe?'_'+suffixe:'')+'.json'}
 /* ---- fiche « séance d'un élève » (fichier JSON et QR) ----
    run = {nom complet, sexe, vmaManuelle, seances:{sid:{…}}} */
-function ctxSeance(run,sid){const d=run.seances&&run.seances[sid];if(!d)return null;const v=(num(d.vj)||vmaOf(run,sid));
+function ctxSeance(run,sid){const d=run.seances&&run.seances[sid];if(!d)return null;if(isM(run))return Object.assign({},d,{_v:vmmOf(run,sid),_mar:1});const v=(num(d.vj)||vmaOf(run,sid));
   const L=sessOf(cyOfSid(sid)),i=L.findIndex(s=>s.id===sid);let ref=null;
   for(let k=i-1;k>=0&&ref==null;k--){const x=run.seances[L[k].id];if(!x)continue;const r=p130real(x.p2)||p130real(x.p);if(r)ref=R(r);else if(x.m130){const m=tp(x.m130.t,x.m130.p);if(m)ref=R(m)}}
   return Object.assign({},d,{_v:v||num(d._v),_ref:ref})}
 function resumeSeance(run,sid){const d=run.seances&&run.seances[sid];if(!d)return null;const c=ctxSeance(run,sid);const [t,n]=tenus(sid,c);const s=SBY[sid];
   const a=s.eval?aflOf(run,d,cyOfSid(sid)):null;
   return {tenus:t,tentes:n,ecart:(v=>v==null?null:R(v))(ecartOf(sid,d)),ecart500:(v=>v==null?null:R(v))(ecartT(sid,d)),afl1:a&&a.tot!=null?a.tot:null,
-    effort:num((d.bl||{}).rpe),charge:chargeOf(d),vma:c&&c._v?R(c._v*10)/10:null,statut:d.st||(d.ad?'adapte':'present')}}
+    effort:num((d.bl||{}).rpe),charge:chargeOf(d),vma:c&&c._v?R(c._v*10)/10:null,statut:d.st||(d.ad?'adapte':'present'),marche:isM(run)||undefined}}

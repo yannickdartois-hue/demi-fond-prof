@@ -16,7 +16,7 @@ const hasData=d=>!!d&&Object.keys(d).some(k=>k!=='_v');
 function saveS(){const b=curBin();if(b&&V.sid){b.mod=b.mod||{};b.mod[V.sid]=Date.now();const r=b.runners[V.ri||0];if(r&&r.imp)delete r.imp[V.sid];b.dates=b.dates||{};if(!b.dates[V.sid])b.dates[V.sid]=today()}save()}
 /* VMA effective d'une séance (VMA du jour modifiée, sinon mesurée) et projets tenus calculés avec elle */
 function effV(run,sid){const d=run.seances&&run.seances[sid];return (d&&num(d.vj))||vmaOf(run,sid)}
-function ctx(run,sid,d){return Object.assign({},d,{_v:effV(run,sid)||num(d&&d._v),_ref:lastReal(run,sid)})}
+function ctx(run,sid,d){if(isM(run))return Object.assign({},d,{_v:vmmOf(run,sid)||num(d&&d._v),_mar:1});return Object.assign({},d,{_v:effV(run,sid)||num(d&&d._v),_ref:lastReal(run,sid)})}
 function tenR(run,sid){const d=run.seances&&run.seances[sid];if(!d)return [0,0];return tenus(sid,ctx(run,sid,d))}
 function sessState(b,sid){const has=b.runners.some(r=>hasData(r.seances&&r.seances[sid])&&!(r.imp&&r.imp[sid]));const sent=b.sent&&b.sent[sid],mod=b.mod&&b.mod[sid];
   if(sent&&mod&&mod>sent+1500)return 'resend';if(sent)return 'sent';return has?'wip':''}
@@ -174,10 +174,10 @@ function presView(b,sid){
     return `<div class="pcol"><b>${esc(r.prenom)}</b><div class="seg">${[['','présent'],['abs','absent'],['bl','blessé / dispensé']].map(o=>`<button class="chip sm ${st===o[0]?'on':''}" data-st="${i}" data-v="${o[0]}">${o[1]}</button>`).join('')}${st?'':`<button class="chip sm ${d.ad?'on':''}" data-ad="${i}">pratique adaptée</button>`}</div></div>`}).join('')}</div>${b.runners.every(r=>!((r.seances&&r.seances[sid]||{}).st))?'<button class="lnk small" data-act="presclose">Replier</button>':''}</section>`;
 }
 function sessView(){
-  const b=curBin(),s=SBY[V.sid],ri=V.ri||0,run=b.runners[ri],d=sd(run,s.id),vMes=vmaOf(run,s.id),vma=num(d.vj)||vMes;
-  const [t,n]=tenus(s.id,Object.assign(ctx(run,s.id,d),{_v:vma}));const co=coachOf(b,ri,s.id);
+  const b=curBin(),ri=V.ri||0,run=b.runners[ri],s=sessFor(run,V.sid),M=isM(run),d=sd(run,s.id),vMes=M?vmmOf(run,s.id):vmaOf(run,s.id),vma=M?vMes:(num(d.vj)||vMes);
+  const [t,n]=tenus(s.id,Object.assign(ctx(run,s.id,d),{_v:vma},M?{_mar:1}:{}));const co=coachOf(b,ri,s.id);
   const head=`<section class="lanehead sess ${s.id[0]==='t'?'t':'s'}"><span class="ln">${s.n}</span><div><b>${esc(s.t)}</b><span><strong>Je réussis si</strong> ${esc(s.goal)}</span></div></section>${presView(b,s.id)}
-  <div class="seg big">${b.runners.map((r,i)=>{const st=(r.seances&&r.seances[s.id]||{}).st;return `<button class="chip ${i===ri?'on':''}" data-ri="${i}">${esc(r.prenom)} ${st?'('+ST_TXT[st]+')':'court'}</button>`}).join('')}</div>`;
+  <div class="seg big">${b.runners.map((r,i)=>{const st=(r.seances&&r.seances[s.id]||{}).st;return `<button class="chip ${i===ri?'on':''}" data-ri="${i}">${esc(r.prenom)} ${st?'('+ST_TXT[st]+')':isM(r)?'marche':'court'}</button>`}).join('')}</div>`;
   const ph=V.ph==='fin'?'fin':'piste';
   const qrBtn='<button class="btn pri big full" data-act="finseance">Envoyer la séance au prof</button>';
   const phases=`<div class="seg big phase"><button class="chip ${ph==='piste'?'on':''}" data-ph="piste">Sur la piste</button><button class="chip ${ph==='fin'?'on':''}" data-ph="fin">Fin de séance · 5 min</button></div>`;
@@ -186,32 +186,35 @@ function sessView(){
    <label>Ce qui m’empêche de courir ${txt('mot',d)}</label><p class="small"><b>✎ Mon rôle aujourd’hui</b></p>${segv('bl.role',d,[['coach','coach'],['juge','juge-chrono']])}
    <label>✎ Ce que j’ai observé / ce que j’ai bien fait dans mon rôle ${txt('bl.nx',d)}</label></section>`+qrBtn;
   const blocs=s.blocks.map(bk).filter(B=>phaseOf(B)===ph);
-  const calcAvant=HIDE_FIRST.includes(s.id)&&!d.vu&&vma;          /* exercice : calculer ses objectifs avant de courir */
+  /* S2, S3, T3, T4 : on calcule ses objectifs avant de courir ; la carte reste EN HAUT, avant et après « Vérifier mes calculs » (elle descendait en bas, sous les blocs). */
+  const calcAvant=!M&&HIDE_FIRST.includes(s.id)&&vma;
   if(ph==='fin')return head+phases+`<section class="card thin"><p class="small"><b>Après les étirements, 5 minutes :</b> chacun remplit son bilan, puis le binôme envoie la séance.</p></section>
   ${stepsBar(s,d)}${blocs.map(B=>stepWrap(withHelp(blockView(B,s,run,d,vma),B[0],B,s),B,s,d)).join('')}
   ${stepWrap(withHelp(bilanView(s,run,d,t,n,vma),'bilan',[],s),['bilan'],s,d)}`+qrBtn;
-  const obj=objCard(s,run,d,vMes,vma);
+  const obj=M?'':objCard(s,run,d,vMes,vma);
   return head+phases+`<div class="coachline ${co.need?'warn':''}"><span>Coach : <b>${co.n?esc(co.n):'à choisir'}</b>${co.rep?` <span class="tag">remplaçant · ${esc(WHY_TXT[co.why]||'')}</span>`:''}</span>
    <button class="btn sm danger" data-act="chcoach">⚠ ${co.rep?'Modifier le coach':'Changer de coach (exceptionnel)'}</button></div>
   ${co.need?'<p class="warn small center">Ton coach habituel est absent : choisis un coach remplaçant avant de courir.</p>':''}
   ${d.ad?`<section class="card thin adapt"><p><b>Pratique adaptée</b> (avis médical, asthme, reprise…) : tu peux alterner course et marche, par exemple 1’ de course et 30" de marche. Ton but : la régularité, pas la distance. Tolérances élargies : 3’ à 20 m, 1’30 en zone 2, temps à 4 s.</p></section>`:''}
+  ${M?SECU_M:''}
   ${calcAvant?obj:''}
   ${stepsBar(s,d)}
   ${blocs.map(B=>stepWrap(withHelp(blockView(B,s,run,d,vma),B[0],B,s),B,s,d)).join('')}
-  <div class="vmaline"><span>VMA utilisée : <b>${vma?fV(vma)+' km/h':'à mesurer en '+(s.id[0]==='t'?'T2':'S1')}</b></span><button class="btn sm" data-act="calc">🧮 Calculer</button></div>
+  ${M?`<div class="vmaline"><span>Ma vitesse de marche : <b>${vma?fV(vma)+' km/h':'à mesurer en '+(s.id[0]==='t'?'T1':'S1')}</b></span></div>`:`<div class="vmaline"><span>VMA utilisée : <b>${vma?fV(vma)+' km/h':'à mesurer en '+(s.id[0]==='t'?'T2':'S1')}</b></span><button class="btn sm" data-act="calc">🧮 Calculer</button></div>`}
   ${calcAvant?'':obj}
   <button class="btn big full" data-ph="fin">Fin de séance : bilan et envoi →</button>`;
 }
 /* ---------- séance découpée en étapes ---------- */
-const RESULT=['ec2','afl1','afl1T','vup'];
-const STEP_KEY={al4:'al',ct:'ct',grp:'grp',i36:'i36',i36m:'i36',ra:'ra',ra2:'ra2',m130:'m130',warm:'wc',warmT:'wc',pf:'pf',pfT:'pf',situe:'situe',at:'at',pe:'pe',rel5:'rlt',tours:'tr',t3624:'ts',rt:'rt',i112:'c112',rep:'rep',mine:'mi',real8:'r8',pfin:'pfin'};
+const RESULT=['ec2','afl1','afl1T','vup','mnote'];
+const STEP_KEY={al4:'al',ct:'ct',grp:'grp',i36:'i36',i36m:'i36',ra:'ra',ra2:'ra2',m130:'m130',warm:'wc',warmT:'wc',pf:'pf',pfT:'pf',situe:'situe',at:'at',pe:'pe',rel5:'rlt',tours:'tr',t3624:'ts',rt:'rt',i112:'c112',rep:'rep',mine:'mi',real8:'r8',pfin:'pfin',mwarm:'mw',mtech:'mt',mall:'ma',mfr:'mf',mpf:'pf',mpe:'pe'};
 function filled(x){if(x==null||x==='')return false;if(Array.isArray(x))return x.some(filled);if(typeof x==='object')return Object.keys(x).some(k=>filled(x[k]));return true}
 function stepDone(B,d){const [ty,a1]=B;
+  if(ty==='m3')return m3dist(d[a1])!=null;if(ty==='m1000')return parseT(d[a1]&&d[a1].t)!=null;if(ty==='mpause')return filled(d[a1]);
   if(ty==='bilan'){const s=SBY[V.sid];return (!s||!voit('rpe',s)||filled(getPath(d,'bl.rpe')))&&(filled(getPath(d,'bl.reu'))||filled(getPath(d,'bl.nx')))}
   if(ty==='c3')return c3dist(d[a1])!=null;if(ty==='p130')return num(d[a1]&&d[a1].ec)!=null;if(ty==='c500')return parseT(d[a1]&&d[a1].t)!=null;
   if(ty==='txt'||ty==='ser'||ty==='entre')return filled(d[a1]);if(ty==='warm'||ty==='warmT')return filled(d.wc)||filled(d.warm);return filled(getPath(d,STEP_KEY[ty]||ty))}
 /* deux temps : sur la piste (le coach note l'essentiel, quelques secondes par course) et en fin de séance (réflexion, bilan) */
-const FIN=['txt','pf','pfT','situe','rep','pe','pfin','afl1','afl1T','ec2','vup'];
+const FIN=['txt','pf','pfT','situe','rep','pe','pfin','afl1','afl1T','ec2','vup','mnote','mpf','mpe'];
 const phaseOf=B=>FIN.includes(B[0])?'fin':'piste';
 function stepList(s,ph){ph=ph||(V.ph==='fin'?'fin':'piste');const L=s.blocks.map(bk).filter(B=>!RESULT.includes(B[0])&&phaseOf(B)===ph);return ph==='fin'?L.concat([['bilan']]):L}
 const oneMode=()=>DB.opts.one!=null?DB.opts.one:window.innerWidth<600;
@@ -261,6 +264,7 @@ const CHK={
 const near=(p,pct)=>x=>x!=null&&p&&Math.abs(x-p)>p*pct?`plus de ${R(pct*100)} % d’écart avec le prévu (${fT(p)}) : vérifie.`:'';
 function blockView(b,s,run,d,vma){
   const [ty,a1,a2,a3]=b;const T=s.id[0]==='t';
+  const bm=blocM(b,s,run,d,vma);if(bm!=null)return bm;
   if(ty==='al4'){const L=['Marche rapide','Footing','Allure rythmée','3’ rapide'],S0=[5,8,10,12];let pts=0;
     const rows=L.map((l,i)=>{const a=num(getPath(d,`al.${i}.an`)),e=num(getPath(d,`al.${i}.re`));let ok=null;if(a!=null&&e!=null){const df=Math.abs(a-e);ok=df<=1;pts+=df===0?3:df<=1?1:0}
       return `<div class="srow"><b class="sl">${l} ${okb(ok)}</b><label>Annonce ${stp(`al.${i}.an`,d,{step:0.5,min:0,max:30,start:S0[i]})}</label><label>Réalisés ${stp(`al.${i}.re`,d,{step:0.5,min:0,max:30,start:a!=null?a:S0[i],chk:CHK.gp})}</label><label>♥ /min ${stp(`al.${i}.fc`,d,{step:4,min:40,max:240,start:120,chk:CHK.fc})}</label></div>`}).join('');
@@ -531,3 +535,34 @@ function progView(){
     <div class="outs">${out('Projets tenus sur le cycle',NN?TT+' / '+NN+' ('+R(100*TT/NN)+' %)':'–','hi')}${out('Indicateur AFL2',dg?DEG_TXT[dg]:'–')}</div></div>`}).join('')}</section>`;
 }
 
+
+/* =====================================================================
+   PARCOURS MARCHE (élève asthmatique ou avis médical) — blocs de séance
+   ===================================================================== */
+const SECU_M=`<section class="card thin adapt"><p><b>🫁 Avant de marcher</b> : traitement 15 min avant si ton médecin l’a prescrit, inhalateur <b>sur toi</b>, échauffement progressif. <b>Arrête-toi et préviens le prof</b> si tu siffles, tousses, ou si ta poitrine serre. Règle : un pied toujours au sol, sinon c’est de la course.</p></section>`;
+function blocM(b,s,run,d,v){const [ty,a1,a2]=b;const sx=run.sexe==='F'?'F':'G',T=s.id[0]==='t';
+  const tog=(k,L)=>{const x=d[k]||[];return `<div class="seg">${L.map(o=>`<button class="chip sm ${x.includes(o[0])?'on':''}" data-tog="${k}" data-v="${o[0]}">${o[1]}</button>`).join('')}</div>`};
+  if(ty==='mwarm')return `<section class="card"><h3>Mon échauffement de marche ${who('R')}</h3>${tog('mw',[['trt','Traitement pris (si prescrit)'],['inh','Inhalateur sur moi'],['m10','10 min de marche de plus en plus vite'],['mob','Chevilles, hanches, épaules'],['acc','3 accélérations de marche']])}<p class="muted small">Par temps froid : écharpe ou col devant la bouche pendant l’échauffement.</p></section>`;
+  if(ty==='mtech')return `<section class="card"><h3>Ma technique de marche ${who('C')}</h3><p class="muted small">Le coach coche ce qu’il voit.</p>${tog('mt',[['sol','Un pied toujours au sol'],['tal','Pose du talon, déroulé du pied'],['bra','Bras actifs, coudes à 90°'],['bus','Buste droit, regard loin'],['bas','Le bassin tourne']])}</section>`;
+  if(ty==='m3'){const c=d[a1]||{};const dd=m3dist(c),pr=num(c.v),mx=a1==='mx';const sug=v?R(dist(180,v)/5)*5:null;const e=dd!=null&&pr!=null?dd-pr:null,pj=projM(e);
+    return `<section class="card"><h3>${esc(a2)} ${who('CR')}</h3>
+     ${mx?'<p class="muted small">À fond, sans jamais courir. La distance divisée par 50 donne ta vitesse de marche : elle sert à calculer tes allures.</p>':`<label>Mon projet de distance (m) ${stp(a1+'.v',d,{step:5,min:150,max:700,start:sug||400,ph:sug?String(sug):''})}</label><p class="muted small">Je place mon plot à cette distance avant la ligne.${sug?' À ta vitesse de marche : '+sug+' m.':''}</p>`}
+     <div class="row wrap"><label>Tours de 200 m ${stp(a1+'.t',d,{min:0,max:4,start:2})}</label><label>+ mètres après la ligne ${stp(a1+'.pl',d,{step:5,min:0,max:195,start:0,chk:CHK.plot})}</label></div>
+     <div class="outs">${out('Distance',fM(dd),'hi')}${out('Vitesse (distance ÷ 50)',dd?fV(dd/50)+' km/h':'–')}${out('Note /8',dd!=null?String(noteMd(sx,dd)).replace('.',','):'–')}${mx?'':out('Projet /4',pj==null?'–':pj+' · écart '+(e>=0?'+':'')+R(e)+' m')}</div></section>`}
+  if(ty==='m1000'){const c=d[a1]||{};const tt=parseT(c.t),pj=parseT(c.tp),ps=parseT(c.ps);const sug=v?R(1000*3.6/v):null;
+    return `<section class="card"><h3>${esc(a2)} ${who('CR')}</h3>
+     <label>Mon temps visé ${tstp(a1+'.tp',d,{min:300,max:1000,start:sug||480,ph:sug?fT(sug):''})}</label>
+     <p class="muted small">${pj?`Passage visé au 500 m : <b>${fT(pj/2)}</b> · par tour de 200 m : <b>${fT(pj/5)}</b>.`:'5 tours de 200 m.'}${sug?' À ta vitesse de marche : '+fT(sug)+'.':''}</p>
+     <div class="row wrap"><label>Passage au 500 m ${tstp(a1+'.ps',d,{min:150,max:500,start:pj?R(pj/2):240})}</label><label>Temps final ${tstp(a1+'.t',d,{min:300,max:1000,start:pj||480})}</label></div>
+     <div class="outs">${out('Temps',tt?fT(tt):'–','hi')}${out('Vitesse',tt?fV(3600/tt)+' km/h':'–')}${out('Note du 1000 m /8',tt?String(noteMt(sx+'1000',tt)).replace('.',','):'–')}${out('Projet (± 10 s)',tt!=null&&pj!=null?(Math.abs(tt-pj)<=10?'✓ tenu':'✗ écart '+(tt-pj>0?'+':'−')+R(Math.abs(tt-pj))+' s'):'–')}${out('2e 500 − 1er',ps&&tt?((tt-ps-ps)>=0?'+':'−')+R(Math.abs(tt-ps-ps))+' s':'–')}</div></section>`}
+  if(ty==='mall'){const L=[70,80,90];
+    return `<section class="card"><h3>Mes trois allures : 3 × 2’ ${who('CR')}</h3><p class="muted small">2’ à chaque allure, 1’ de marche lente entre deux. Cible = distance en 2’ à ce pourcentage de ta vitesse de marche (à 10 m près).</p>
+     ${L.map((p,i)=>{const cib=v?R(dist(120,v*p/100)/5)*5:null,r=num((d.ma||[])[i]);return `<div class="srow"><b class="sl">${p} % ${r!=null&&cib?okb(Math.abs(r-cib)<=10):''}</b><span class="pill">cible ${cib?cib+' m':'– (mesure ta vitesse)'}</span><label>Réalisé (m) ${stp('ma.'+i,d,{step:5,min:50,max:400,start:cib||200})}</label></div>`}).join('')}</section>`}
+  if(ty==='mfr')return `<section class="card"><h3>Fractionné : 3 × 3’ ${who('CR')}</h3><p class="muted small">J’annonce ma distance, je marche 3’, puis 2’ de marche lente. À 10 m près = tenu.</p>
+     ${[0,1,2].map(i=>{const a=num(getPath(d,`mf.${i}.v`)),r=num(getPath(d,`mf.${i}.r`));return `<div class="srow"><b class="sl">3’ n°${i+1} ${a!=null&&r!=null?okb(Math.abs(a-r)<=10):''}</b><label>Annoncé (m) ${stp(`mf.${i}.v`,d,{step:5,min:150,max:700,start:v?R(dist(180,v*0.85)/5)*5:350})}</label><label>Réalisé (m) ${stp(`mf.${i}.r`,d,{step:5,min:150,max:700,start:a||350})}</label></div>`}).join('')}</section>`;
+  if(ty==='mpause')return `<section class="card entre"><h3>${esc(a2)} ${who('R')}</h3><p class="small">Je marche lentement, je souffle par la bouche, je bois un peu. Si je siffle ou tousse : je préviens le prof.</p><p class="small"><b>✎ Je me sens…</b></p>${segv(a1+'.ress',d,[['aise','bien'],['moyen','essoufflé(e)'],['dur','gêné(e) pour respirer']])}${getPath(d,a1+'.ress')==='dur'?'<p class="warn small">Arrête-toi, prends ton traitement si prescrit et préviens le prof avant de repartir.</p>':''}</section>`;
+  if(ty==='mnote'){const a=aflM(run,d,T?'T':'S');const f=x=>x==null?'–':String(x).replace('.',',');
+    return `<section class="card"><h3>Ma note de marche (AFL1)</h3>${a?`<div class="outs">${out(T?'2 × 1000 m /8':'1000 m /8',f(a.nt))}${out('Distance 3’ /8',f(a.n3))}${out('Performance /8',f(a.perf))}${out('Projet 3’ /4',f(a.pj)+(a.e!=null?' (écart '+(a.e>=0?'+':'')+R(a.e)+' m)':''))}${out('AFL1 /12',f(a.tot),'hi')}</div>`:'<p class="muted">Remplis les épreuves.</p>'}<p class="muted small">Performance = moyenne de la note ${T?'des 2 × 1000 m (temps total)':'du 1000 m'} et de celle de la distance en 3’. Projet : à 5 m près = 4 ; 5 à 15 m de plus = 3 ; plus de 15 m de plus ou 5 à 15 m de moins = 2 ; 15 à 25 m de moins = 1.</p></section>`}
+  if(ty==='mpf')return `<section class="card"><h3>Ce que je travaille ensuite ${who('R')}</h3>${tog('pf',[['dep','1000 m : départ trop rapide'],['chute','1000 m : je ralentis à la fin'],['proj','3’ : projet mal annoncé'],['tech','Je cours par moments']])}</section>`;
+  if(ty==='mpe')return `<section class="card"><h3>Mes projets pour l’épreuve ${who('R')}</h3><div class="row wrap"><label>1000 m : temps visé ${tstp('pe.t',d,{min:300,max:1000,start:v?R(1000*3.6/v):480})}</label><label>3’ : projet (m) ${stp('pe.p',d,{step:5,min:150,max:700,start:v?R(dist(180,v)/5)*5:400})}</label></div><label>Pourquoi ${txt('pe.why',d)}</label></section>`;
+  return null}

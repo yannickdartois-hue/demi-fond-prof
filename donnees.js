@@ -67,3 +67,43 @@ const WARM_EX=[[['f','Footing 60-70 %'],['tf','Talons-fesses'],['mg','Montées d
  [['ch','Chevilles'],['ge','Genoux'],['ha','Hanches'],['ep','Épaules'],['ga','Gainage'],['sq','Squats'],['fe','Fentes'],['po','Montées sur pointes']],
  [['sk','Skipping'],['gr','Foulées griffées'],['bo','Foulées bondissantes'],['ac','3 accélérations progressives'],['al','Accélération à l’allure de course']]];
 const WARM_NAME=Object.fromEntries([].concat(...WARM_EX));
+
+/* =====================================================================
+   PARCOURS MARCHE — élèves asthmatiques (ou autre avis médical) : un élève
+   du binôme peut suivre ce parcours (run.pc = 'm') pendant que l'autre court.
+   Mêmes numéros de séance que la classe (S1-S8, T1-T9) : le code du cours,
+   l'appel et l'envoi restent communs.
+   Terminale : épreuve du lycée « marche fractionnée adaptée » 2 × 1000 m + 3’ (barème CCF 2021).
+   Seconde : épreuve allégée 1 × 1000 m + 3’ (mêmes tables, un seul 1000 m).
+   ===================================================================== */
+const tMs=s=>{const m=/(\d+)\D+(\d+)/.exec(s);return +m[1]*60+ +m[2]};
+const BARM={notes:[8,7.75,7.5,7.25,7,6.75,6.5,6.25,6,5.75,5.5,5.25,5,4.5,4,3.75,3.5,3.25,3,2.75,2.5,2.25,2,1.75,1.5,1.25,1,0.75,0.5],
+ F1000:['6’35','6’45','6’55','7’05','7’15','7’25','7’35','7’45','7’55','8’05','8’15','8’25','8’35','8’45','8’55','9’05','9’15','9’25','9’35','9’55','10’15','10’35','10’55','11’15','11’35','11’55','12’15','12’55','13’15'].map(tMs),
+ G1000:['5’55','6’05','6’15','6’25','6’35','6’45','6’55','7’05','7’15','7’25','7’35','7’45','7’55','8’05','8’15','8’25','8’35','8’45','8’55','9’05','9’15','9’25','9’35','9’55','10’15','10’45','11’15','11’55','12’15'].map(tMs),
+ F2000:['13’10','13’30','13’50','14’10','14’30','14’50','15’10','15’30','15’50','16’10','16’30','16’50','17’10','17’30','17’50','18’10','18’30','18’50','19’10','19’50','20’30','21’10','21’50','22’30','23’10','23’50','24’30','25’50','26’30'].map(tMs),
+ G2000:['11’50','12’10','12’30','12’50','13’10','13’30','13’50','14’10','14’30','14’50','15’10','15’30','15’50','16’10','16’30','16’50','17’10','17’30','17’50','18’10','18’30','18’50','19’10','19’50','20’30','21’30','22’30','23’50','24’30'].map(tMs),
+ /* distance en 3’ : donnée tous les points ; entre deux lignes, répartition régulière (au quart de point le plus proche) */
+ D3:{F:[[8,475],[7,430],[6,395],[5,370],[4,340],[3,315],[2,290],[1,265],[0.5,245]],G:[[8,530],[7,480],[6,440],[5,410],[4,380],[3,340],[2,315],[1,285],[0.5,275]]}};
+const MCRIT=['Un pied toujours au sol','Bras actifs, coudes à 90°','Buste droit, regard loin'];
+const SESS_SM=[
+ {id:'s1',n:'S1',t:'Marche · technique et ma vitesse de marche',goal:'je marche sans jamais courir et je mesure ma vitesse de marche sur 3’.',crit:MCRIT,blocks:['mwarm','mtech',['m3','mx','3’ de marche à fond : ma vitesse de marche']]},
+ {id:'s2',n:'S2',t:'Marche · mes trois allures',goal:'je tiens mes allures à 10 m près.',crit:['Allures bien différentes','Même vitesse du début à la fin','Respiration contrôlée'],blocks:['mwarm','mall',['m3','q','3’ avec projet de distance']]},
+ {id:'s3',n:'S3',t:'Marche · le 1000 m',goal:'mon 1000 m arrive à 10 s près de mon temps visé.',crit:['Passage au 500 m respecté','Pas de course','Accélère dans le dernier tour'],blocks:['mwarm',['m1000','k1','1000 m avec temps visé'],['m3','q','3’ avec projet de distance']]},
+ {id:'s4',n:'S4',t:'Marche · fractionné 3 × 3’',goal:'mes trois 3’ sont à 10 m près de ce que j’annonce.',crit:['Récupère en marchant lentement','Annonce réaliste','Technique propre quand c’est dur'],blocks:['mwarm','mfr',['m1000','k1','1000 m avec temps visé']]},
+ {id:'s5',n:'S5',t:'Marche · régularité',goal:'mes deux 3’ ont moins de 15 m d’écart.',crit:['Même allure du début à la fin','Écoute les temps de passage','Projet ajusté entre les deux'],blocks:['mwarm',['m3','q','3’ n°1 avec projet'],['mpause','en','Récupérer entre les deux'],['m3','q2','3’ n°2 avec projet']]},
+ {id:'s6',n:'S6',t:'Marche · épreuve blanche 1000 m / 3’',goal:'je m’échauffe seul et je repars avec ma note et mon point faible.',eval:true,crit:['Échauffement complet','Projet écrit avant de marcher','Départ du 1000 m maîtrisé'],blocks:['mwarm',['m1000','w1','C1 · 1000 m'],['mpause','en','Entre C1 et C2'],['m3','q','C2 · 3’ avec projet de distance'],'mnote','mpf']},
+ {id:'s7',n:'S7',t:'Marche · mon point faible et mes projets',goal:'je règle mes projets pour l’épreuve.',crit:['Travail en lien avec son point faible','Annonces tenues','Projets cohérents avec ses chiffres'],blocks:['mwarm','mfr','mpe']},
+ {id:'s8',n:'S8',t:'Marche · évaluation 1000 m / 3’',goal:'mon 1000 m est régulier et mon 3’ arrive à 5 m de mon projet.',eval:true,crit:['Échauffement seul et complet','Coach précis','Allure gérée sur les deux épreuves'],blocks:['mwarm',['m1000','w1','C1 · 1000 m'],['mpause','en','Entre C1 et C2'],['m3','q','C2 · 3’ avec projet de distance'],'mnote','situe']}
+];
+const SESS_TM=[
+ {id:'t1',n:'T1',t:'Marche · technique et ma vitesse de marche',goal:'je marche sans jamais courir et je mesure ma vitesse de marche sur 3’.',crit:MCRIT,blocks:['mwarm','mtech',['m3','mx','3’ de marche à fond : ma vitesse de marche']]},
+ {id:'t2',n:'T2',t:'Marche · mes trois allures',goal:'je tiens mes allures à 10 m près.',crit:['Allures bien différentes','Même vitesse du début à la fin','Respiration contrôlée'],blocks:['mwarm','mall',['m3','q','3’ avec projet de distance']]},
+ {id:'t3',n:'T3',t:'Marche · le 1000 m',goal:'mon 1000 m arrive à 10 s près de mon temps visé.',crit:['Passage au 500 m respecté','Pas de course','Accélère dans le dernier tour'],blocks:['mwarm',['m1000','k1','1000 m avec temps visé'],['m3','q','3’ avec projet de distance']]},
+ {id:'t4',n:'T4',t:'Marche · fractionné 3 × 3’',goal:'mes trois 3’ sont à 10 m près de ce que j’annonce.',crit:['Récupère en marchant lentement','Annonce réaliste','Technique propre quand c’est dur'],blocks:['mwarm','mfr',['m1000','k1','1000 m avec temps visé']]},
+ {id:'t5',n:'T5',t:'Marche · 2 × 1000 m réguliers',goal:'mes deux 1000 m ont moins de 15 s d’écart.',crit:['Même allure sur les deux 1000 m','Récupération active','Passages au 500 m tenus'],blocks:['mwarm',['m1000','k1','1000 m n°1'],['mpause','en','Récupérer entre les deux'],['m1000','k2','1000 m n°2']]},
+ {id:'t6',n:'T6',t:'Marche · nouvelle mesure et projet de 3’',goal:'mon 3’ arrive à 5 m de mon projet.',crit:['Mesure faite à fond','Projet ajusté à la nouvelle vitesse','Fin de 3’ maîtrisée'],blocks:['mwarm',['m3','mx','3’ à fond : nouvelle mesure'],['mpause','en','Récupérer'],['m3','q','3’ avec projet de distance']]},
+ {id:'t7',n:'T7',t:'Marche · épreuve blanche 2 × 1000 m / 3’',goal:'je connais ma note et le point que je travaille en T8.',eval:true,crit:['Échauffement complet','Stratégie écrite avant chaque épreuve','Faible écart prévu / réalisé'],blocks:['mwarm',['m1000','w1','C1 · 1000 m'],['mpause','en','Entre C1 et C2'],['m1000','w2','C2 · 1000 m'],['mpause','en2','Entre C2 et C3'],['m3','q','C3 · 3’ avec projet de distance'],'mnote','mpf']},
+ {id:'t8',n:'T8',t:'Marche · mon point faible et mes projets',goal:'je règle mes projets pour l’épreuve.',crit:['Travail en lien avec son point faible','Annonces tenues','Projets cohérents avec ses chiffres'],blocks:['mwarm','mfr','mpe']},
+ {id:'t9',n:'T9',t:'Marche · épreuve 2 × 1000 m / 3’',goal:'mes 1000 m sont réguliers et mon 3’ arrive à 5 m de mon projet.',eval:true,crit:['Échauffement seul et complet','Coach précis','Allure gérée sur les trois épreuves'],blocks:['mwarm',['m1000','w1','C1 · 1000 m'],['mpause','en','Entre C1 et C2'],['m1000','w2','C2 · 1000 m'],['mpause','en2','Entre C2 et C3'],['m3','q','C3 · 3’ avec projet de distance'],'mnote','situe']}
+];
+const SBYM=Object.fromEntries(SESS_SM.concat(SESS_TM).map(s=>[s.id,s]));
