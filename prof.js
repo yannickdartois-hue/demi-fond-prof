@@ -227,8 +227,8 @@ function qrPlein(titre,sous,parts){const d=document.createElement('div');d.class
   let i=0;const z=d.querySelector('#qpz'),n=d.querySelector('#qpn');z.innerHTML=svgQR(parts[0]);if(parts.length>1)n.textContent='1 / '+parts.length+' · la tablette vise jusqu’au bout';
   const h=parts.length>1?setInterval(()=>{i=(i+1)%parts.length;z.innerHTML=svgQR(parts[i]);n.textContent=(i+1)+' / '+parts.length+' · la tablette vise jusqu’au bout'},1100):null;
   d.querySelector('button').onclick=()=>{if(h)clearInterval(h);d.remove()};document.body.appendChild(d)}
-async function qrDemarrage(c){const L=P.classesL[c],k=await clePublique();
-  const txt=await DFQR.encoder({a:'DFE',v:1,t:'C',c,y:L.cy||'S',l:L.eleves,u:L.lien||'',k});
+async function qrDemarrage(c){const L=P.classesL[c],k=await clePublique();if(!L.cc){L.cc=EPSCode.nouvelleCle();sauver()}
+  const txt=await DFQR.encoder({a:'DFE',v:1,t:'C',c,y:L.cy||'S',l:L.eleves,u:L.lien||'',k,cc:L.cc});
   qrPlein('Classe '+esc(c)+' · demi-fond '+CYC[L.cy||'S'].label,'Appli élève : « Scanner le QR de la classe » (accueil, ou Groupe → Nouvelle liste de classe)',[txt])}
 /* rappel d'archivage : des séances reçues pendant une année scolaire précédente (l'année scolaire commence le 15 août) */
 const anneeSco=ms=>{const d=new Date(ms);return d.getFullYear()-((d.getMonth()<7||(d.getMonth()===7&&d.getDate()<15))?1:0)};
@@ -247,7 +247,7 @@ function vClasses(){
   ${C.length?C.map(c=>{const L=P.classesL[c];return `<section class="card"><h3>${esc(c)} <span class="cls ${L.cy==='T'?'t':'s'}">${CYC[L.cy||'S'].label}</span> <span class="small muted">· ${L.eleves.length} élèves</span></h3>
     <div class="row wrap"><label>Niveau<select class="in sel cl-cy" data-cl="${esc(c)}"><option value="S"${L.cy!=='T'?' selected':''}>Seconde</option><option value="T"${L.cy==='T'?' selected':''}>Terminale</option></select></label>
      <label style="flex:1 1 320px">Lien d’envoi en ligne (Nuage, « Demande de fichier ») — jamais visible par les élèves<input type="url" class="in cl-lien" style="max-width:none" data-cl="${esc(c)}" value="${esc(L.lien)}" placeholder="https://nuage03.apps.education.fr/s/…"></label></div>
-    <div class="row wrap"><button class="btn pri" data-act="qrdem" data-v="${esc(c)}">QR de démarrage</button><button class="btn sm ghost" data-act="clsuppr" data-v="${esc(c)}">Retirer la liste</button></div>
+    <div class="row wrap"><button class="btn pri" data-act="qrdem" data-v="${esc(c)}">QR de démarrage</button><button class="btn" data-act="codecours" data-v="${esc(c)}">🔑 Code du cours</button><button class="btn sm ghost" data-act="clsuppr" data-v="${esc(c)}">Retirer la liste</button></div>
     <details><summary class="small">Voir la liste</summary><ol class="small">${L.eleves.map(n=>`<li>${esc(n)}</li>`).join('')}</ol></details></section>`}).join('')+`<p class="small muted">Le QR contient la liste, le niveau, le lien et ta clé de copie de secours. Si tu changes la liste ou le lien, les groupes rescannent le nouveau QR (Groupe → Nouvelle liste de classe).</p>`:''}
   <section class="card"><h3>Fin d’année</h3><p class="small muted">Télécharge une sauvegarde complète, puis vide l’outil pour la rentrée suivante.</p><button class="btn sm ghost" data-act="archiver">Archiver l’année et repartir à zéro</button></section>
   <p class="ver">Demi-fond · outil prof ${APP_VERSION} · lien de démonstration pour un collègue : <b>${esc(location.origin+location.pathname)}?demo</b></p>`;
@@ -504,6 +504,7 @@ document.addEventListener('click',async ev=>{
     case 'csv':return exporter(v);
     case 'imprimer':return window.print();
     case 'qrdem':return qrDemarrage(v);
+    case 'codecours':{const L=P.classesL[v];if(!L)return;if(!L.cc){L.cc=EPSCode.nouvelleCle();sauver()}return EPSCode.prof({app:'dfp',classe:v,cle:L.cc,seances:CYC[L.cy||'S'].sess.map(s=>({v:s.id,n:s.n}))})}
     case 'reprise':return qrReprise(k);
     case 'clcoller':return importerListe([],$('#cl-txt').value,$('#cl-nom').value.trim(),$('#cl-cy').value);
     case 'clsuppr':if(!confirm('Retirer la liste de la classe '+v+' ? (Les séances reçues sont gardées.)'))return;delete P.classesL[v];classeParDefaut();break;

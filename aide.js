@@ -1,6 +1,13 @@
 /* aide.js — mode d'emploi de l'outil prof demi-fond (lu par eps-aide.js) */
 window.EPS_AIDE={appli:'Demi-fond · Outil prof',bouton:false,pied:'Toutes les données restent sur cet appareil : pensez à la sauvegarde après chaque import.',publics:[
 {id:'prof',titre:'Professeur',chapitres:[
+{t:'🔑 Code du cours (chaque cours)',html:`<ol>
+<li>Les élèves utilisent leur téléphone : sans verrou, ils pourraient remplir chez eux des séances à l’avance. Le code du cours l’empêche.</li>
+<li>Début de cours : Classes → <span class="bouton">🔑 Code du cours</span>, vérifiez la séance, écrivez les 4 chiffres au tableau.</li>
+<li>Chaque groupe tape le code : la séance du jour s’ouvre sur son téléphone pendant 2 heures. Sans code, l’appli se consulte mais on ne peut rien saisir.</li>
+<li>Le code ne vaut que pour cette séance et ce jour-là. Pour préparer un cours, changez la date : le code s’affiche à l’avance. Aucune connexion nécessaire.</li>
+</ol><p class="astuce">Une seule fois après cette mise à jour : refaites scanner le <b>QR de démarrage</b> (il apporte la clé de la classe). Tant qu’un téléphone ne l’a pas rescanné, il n’est pas verrouillé.</p>`},
+
 {t:'Démarrer en 5 minutes',html:`<ol>
 <li><b>Classes</b> : importez la liste Pronote (fichier xlsx/csv, ou liste collée « NOM Prénom »). Une colonne « Sexe » remplit fille/garçon.</li>
 <li>Choisissez le <b>niveau</b> (Seconde S1-S8 ou Terminale T1-T9).</li>
