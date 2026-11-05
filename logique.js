@@ -81,7 +81,7 @@ function afl1(run,d){                                   /* Seconde (/12) */
   if(!d)return null;const F=run.sexe==='F';
   const d3=c3dist(d.c3),r130=p130real(d.p),e=num(d.p&&d.p.ec),reg=c3reg(d.c3);
   if(d3==null&&r130==null)return null;
-  const n3=noteS(F?'F3':'G3',d3),n1=noteS(F?'F130':'G130',r130),z=zoneS(e),rg=reg==null?0:(reg>=-10?1:0);
+  const n3=noteS(F?'F3':'G3',d3),n1=noteS(F?'F130':'G130',r130),z=zoneS(e),rg=reg==null?0:(reg>=-5?1:0);
   return {n3,n1,z:z?z[0]:0,zl:z?z[1]:'–',rg,tot:n3+n1+(z?z[0]:0)+rg,d3,r130};
 }
 function afl1T(run,d){                                  /* Terminale (/12) : performance /8 + zone /4 */

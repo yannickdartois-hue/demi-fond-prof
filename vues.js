@@ -54,7 +54,7 @@ const HELP={
  c3:(b,s)=>[`<b>Départ de la ligne, tous ensemble, 3 min de course.</b>${s.eval?' C’est la course C1 de l’épreuve.':''}`,
   '<b>Avant</b> : écris ta distance visée (à 100 % de ta VMA, la proposition est en gris dans la case).',
   '<b>Le coach</b> compte tes tours, note où tu es à 1’30 (mi-course : tours + plot) puis au sifflet de 3’ (tours + plot d’arrêt). Avec ⏱ « Compter en direct », il touche TOUR à chaque passage et la tablette bipe à 1’30 et à 3’.',
-  '<b>Régulier</b> si la 2e moitié est au moins aussi longue que la 1re, à 10 m près. <b>Projet tenu</b> si ta distance est à 10 m de ta distance visée.',
+  '<b>Régulier</b> si la 2e moitié est au moins aussi longue que la 1re, à 5 m près. <b>Projet tenu</b> si ta distance est à 10 m de ta distance visée.',
   '<b>Conseil</b> : pars à l’allure de la fin, pas plus vite.'],
  p130:(b,s)=>{const T=s.id[0]==='t';return [`<b>Tu choisis ta distance projet</b> et tu places ton plot à cette distance <b>avant</b> la ligne d’arrivée (ex. 340 m → 140 m avant la ligne, puis un tour complet).${s.eval?(T?' C’est la course C3 de l’épreuve.':' C’est la course C2 de l’épreuve.'):''}`,
   '<b>Tous partent au même sifflet</b>, chacun de son plot, et visent la ligne à 1’30.',
