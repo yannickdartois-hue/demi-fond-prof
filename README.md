@@ -20,3 +20,6 @@ Tout reste sur cet appareil (localStorage) : **exporter une sauvegarde** après 
 
 ## Fichiers
 `donnees.js`, `logique.js`, `scan.js`, `vues.js` sont **identiques à ceux de l'appli élève** (mêmes séances, mêmes calculs, même format de QR). `prof.js` (outil), `chrono.js`, `prof-demo.js`, `jszip.js` et `xlsx.js` (lecture des .zip et des fichiers Pronote). `sw.js` : **augmenter `VERSION`** à chaque modification.
+
+## FC (pouls assisté de l'appli élève)
+La fiche séance affiche la FC de chaque allure (S1) et la FC de fin de série du bilan, avec la FC de récupération à 1 min quand l'élève l'a prise (`al.N.fcr`, `bl.fcr`). L'export « Séances » ajoute 3 colonnes à la fin : FC fin de série, FC récup 1 min, baisse en 1 min.

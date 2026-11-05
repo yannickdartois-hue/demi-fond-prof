@@ -115,6 +115,8 @@ const runOf=e=>({sexe:e.sexe,seances:e.seances,vmaManuelle:e.vmaManuelle});
 const starOf=(k,sid)=>(P.stars[k]&&P.stars[k][sid])||{};
 function totaux(e){let T=0,N=0;sessOf(e.cy).forEach(s=>{const [t,n]=tenR(runOf(e),s.id);T+=t;N+=n});return [T,N]}
 const fc=x=>x==null||x===''?'–':String(x).replace('.',',');
+/* FC de fin d'effort et FC de récupération à 1 min (pouls assisté de l'appli élève : champs fc / fcr) */
+const fcRecTxt=o=>{if(!o)return '';const a=num(o.fc),b=num(o.fcr);if(a==null)return '';return ' · ♥ '+a+(b!=null?' → '+b+' en 1 min (−'+Math.max(0,a-b)+')':'')};
 function ecTrend(e){const v=sessOf(e.cy).map(s=>ecartOf(s.id,e.seances[s.id])).filter(x=>x!=null);if(!v.length)return '–';const a=R(v[0]),b=R(v[v.length-1]);return v.length<2?a+' m':`${a} → <b class="${b<a?'ok':b>a?'ko':''}">${b} m</b>`}
 /* AFL3 : ce que l'élève produit comme coach, mesuré chez les coureurs qu'il a coachés */
 /* Contrôle du prof : il mesure lui-même une course par séance (distance ou temps de la course principale).
@@ -358,7 +360,7 @@ async function qrReprise(k){const e=P.eleves[k];const se={};Object.entries(e.sea
 function detail(k,sid){const e=P.eleves[k];const d=e.seances[sid];const s=SBY[sid];const run=runOf(e);const T=sid[0]==='t';
   const [t,n]=tenR(run,sid);const a=s.eval?aflOf(run,d,T?'T':'S'):null;const bl=d.bl||{};const L=[];const vma=vmaOf(run,sid);const f=x=>esc(x==null||x===''?'–':x);
   if(d.i36)L.push(['36"/36"',d.i36.map(x=>x||'·').join(' ')]);
-  if(d.al)L.push(['4 allures (annonce/réalisé)',d.al.map(r=>r?(r.an||'·')+'/'+(r.re||'·'):'·').join(' · ')]);
+  if(d.al)L.push(['4 allures (annonce/réalisé)',d.al.map(r=>r?(r.an||'·')+'/'+(r.re||'·')+fcRecTxt(r):'·').join(d.al.some(r=>r&&r.fc)?'<br>':' · ')]);
   if(d.ct)L.push(['Contrat de tours',d.ct.map(r=>r?(r.c||'·')+'/'+(r.r||'·'):'·').join(' · ')]);
   if(d.ra)L.push(['Récup active',f(d.ra)+' grands plots']);if(d.ra2)L.push(['Récup active',f(d.ra2)+' m']);
   if(d.m130)L.push(['1’30 mesuré',fM(tp(d.m130.t,d.m130.p))]);
@@ -385,7 +387,7 @@ function detail(k,sid){const e=P.eleves[k];const d=e.seances[sid];const s=SBY[si
   modal(`<h2>${esc(e.full)} · ${s.n}</h2><p class="muted small">VMA ${fV(vma)} km/h · projets tenus ${n?t+'/'+n:'–'}${a&&a.tot!=null?' · AFL1 '+a.tot+'/12':''}</p>
    <table class="tt l">${L.map(l=>`<tr><th>${l[0]}</th><td>${l[1]}</td></tr>`).join('')}
    <tr><th>Coach a vu</th><td>${s.crit.map((c,i)=>(bl.cr&&bl.cr[i]?'☑ ':'☐ ')+esc(c)).join('<br>')}</td></tr>
-   <tr><th>Réussite / conseil</th><td>${esc(bl.reu||'–')} / ${esc(bl.con||'–')}</td></tr><tr><th>Effort · charge</th><td>${bl.rpe!=null&&bl.rpe!==''?'RPE '+esc(bl.rpe)+' · '+chargeOf(d)+' UA':'–'}${bl.fc?' · '+esc(bl.fc)+' bpm':''}</td></tr>
+   <tr><th>Réussite / conseil</th><td>${esc(bl.reu||'–')} / ${esc(bl.con||'–')}</td></tr><tr><th>Effort · charge</th><td>${bl.rpe!=null&&bl.rpe!==''?'RPE '+esc(bl.rpe)+' · '+chargeOf(d)+' UA':'–'}${bl.fc?' · '+esc(bl.fc)+' bpm'+(num(bl.fcr)!=null?' · récup 1 min '+esc(bl.fcr)+' (−'+Math.max(0,num(bl.fc)-num(bl.fcr))+')':''):''}</td></tr>
    <tr><th>Coach</th><td>pronostic ${esc(bl.pr||'–')}${pronoErr(s,d)!=null?' (±'+R(pronoErr(s,d))+' %)':''} · conseil utile : ${bl.aide==='1'?'oui':bl.aide==='0'?'non':'–'}</td></tr>
    <tr><th>Rôle · prochaine fois</th><td>${esc(bl.role||'–')} · ${esc(bl.nx||'')}</td></tr></table><div class="row wrap"><button class="btn" data-act="closem">Fermer</button></div>`)}
 /* ----- Note ----- */
@@ -453,9 +455,9 @@ function exporter(type){if(!P.classe)return toast('Choisis une classe.');const c
     eleves().forEach(k=>{const e=P.eleves[k];if(!e)return;const run=runOf(e);const [TT,N]=totaux(e);const b6=aflOf(run,e.seances[ev[0]],cy),e8=aflOf(run,e.seances[ev[1]],cy);const a2=num(e.afl2),a3=num(e.afl3);
       const ex=T?[e8&&e8.t1?fT(e8.t1):'',e8&&e8.t2?fT(e8.t2):'',e8&&e8.r130?R(e8.r130):'',AFLMAX(cy,e).join('/')]:[e8?R(e8.d3||0):'',e8?R(e8.r130||0):''];
       rows.push([e.classe,e.nom,e.prenom,e.sexe||'',fV(vmaDe(e)),TT,N,N?R(100*TT/N):'',degreeOf(TT,N)||'',...L.map(s=>{const x=tenR(run,s.id);return x[1]?x[0]+'/'+x[1]:(e.seances[s.id]&&e.seances[s.id].st)||''}),...L.map(s=>starOf(k,s.id).a2?1:''),...L.map(s=>starOf(k,s.id).a3?1:''),b6&&b6.tot!=null?b6.tot:'',...ex,e8&&e8.tot!=null?e8.tot:'',e.afl2||'',e.afl3||'',e8&&e8.tot!=null&&a2!=null&&a3!=null?R((e8.tot+a2+a3)*10)/10:'',...tenueRetard(k).map(x=>x||'')])})}
-  else{rows=[['Classe','Élève','Séance','Date','Reçu par','Statut','Projets tenus','Tentés','Écart (m)','Écart 500 m (s)','VMA','Effort (RPE)','Charge (UA)','Coach','Coach remplaçant','Pratique adaptée','Réussite','Conseil','Prochaine fois']];
+  else{rows=[['Classe','Élève','Séance','Date','Reçu par','Statut','Projets tenus','Tentés','Écart (m)','Écart 500 m (s)','VMA','Effort (RPE)','Charge (UA)','Coach','Coach remplaçant','Pratique adaptée','Réussite','Conseil','Prochaine fois','FC fin de série','FC récup 1 min','Baisse en 1 min']];
     eleves().forEach(k=>{const e=P.eleves[k];if(!e)return;L.forEach(s=>{const d=e.seances[s.id];if(!d)return;const r=e.recu[s.id]||{};const [t,n]=tenR(runOf(e),s.id);const bl=d.bl||{};const c=e.coach[s.id];
-      const sm=statut(k,s.id);rows.push([e.classe,e.full,s.n,r.date||'',r.src==='qr'?'QR':'fichier',sm.manuel?STATUTS[sm.c]:d.st?ST_TXT[d.st]:'présent',n?t:'',n||'',(x=>x==null?'':R(x))(ecartOf(s.id,d)),(x=>x==null?'':R(x))(ecartT(s.id,d)),fV(vmaOf(runOf(e),s.id)),bl.rpe||'',chargeOf(d)||'',c?c.n:'',c&&c.rep?'oui':'',d.ad?'oui':'',bl.reu||'',bl.con||'',bl.nx||''])})})}
+      const sm=statut(k,s.id);rows.push([e.classe,e.full,s.n,r.date||'',r.src==='qr'?'QR':'fichier',sm.manuel?STATUTS[sm.c]:d.st?ST_TXT[d.st]:'présent',n?t:'',n||'',(x=>x==null?'':R(x))(ecartOf(s.id,d)),(x=>x==null?'':R(x))(ecartT(s.id,d)),fV(vmaOf(runOf(e),s.id)),bl.rpe||'',chargeOf(d)||'',c?c.n:'',c&&c.rep?'oui':'',d.ad?'oui':'',bl.reu||'',bl.con||'',bl.nx||'',...(f=>[f,num(bl.fcr)!=null?num(bl.fcr):'',f!==''&&num(bl.fcr)!=null?f-num(bl.fcr):''])(num(bl.fc)!=null?num(bl.fc):'')])})})}
   telecharger('DF_'+slug(P.classe)+'_'+type+'.csv',csv(rows))}
 
 /* ---------- Évènements ---------- */
