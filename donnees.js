@@ -99,7 +99,10 @@ const GAMMES=[
  ['g17','Montées de genoux latérales','gamme-genoux-lateral.jpg','De côté, monte le genou à chaque pas.','Bassin de face, pieds qui ne se croisent pas.'],
  ['g18','Cloche-pied alterné','gamme-cloche-pied.jpg','3 bonds sur un pied, 3 sur l’autre, en avançant.','Réception sur l’avant du pied, bassin stable.'],
  ['g19','Fentes marchées','gamme-fentes-marchees.jpg','Grand pas, genou arrière proche du sol, et on enchaîne.','Genou avant au-dessus de la cheville, buste droit.'],
- ['g20','Balancés de jambe en marchant','gamme-balances.jpg','Lance la jambe tendue devant, main opposée vers le pied.','Jambe d’appui tendue, mouvement contrôlé.']];
+ ['g20','Balancés de jambe en marchant','gamme-balances.jpg','Lance la jambe tendue devant, main opposée vers le pied.','Jambe d’appui tendue, mouvement contrôlé.'],
+ ['g21','Course au ralenti','gamme-ralenti.jpg','Cours très lentement en décomposant chaque phase : genou qui monte, jambe qui se déplie, pied qui se pose sous le bassin.','Mouvement complet et contrôlé, buste droit.'],
+ ['g22','Coordination bras-jambes','gamme-coordination.jpg','Cours en insistant sur les bras : bras opposé à la jambe qui monte, coudes à 90°, mains des hanches au menton.','Les bras rythment la foulée, les épaules restent basses.'],
+ ['g23','Rythme de foulée (cibles au sol)','gamme-rythme-foulee.jpg','Cerceaux ou coupelles à espacement régulier : un appui dans chaque cible, sans changer de rythme.','Appuis dans les cibles, foulée régulière, regard devant.']];
 WARM_EX[4]=GAMMES.map(g=>[g[0],g[1]]);
 /* anciens codes (carnets déjà remplis) */
 const WARM_OLD=[['ha','Hanches'],['cr','Pas croisés'],['sk','Skipping'],['gr','Foulées griffées'],['bo','Foulées bondissantes']];
