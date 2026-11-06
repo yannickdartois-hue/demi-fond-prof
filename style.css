@@ -372,3 +372,4 @@ table.pt th.l{position:sticky;left:0;z-index:1}
   nav.otop button{padding-left:12px;padding-right:12px}
 }
 @media (max-width:900px){nav.otop{gap:4px}nav.otop button{padding-left:9px;padding-right:9px;font-size:14px}}
+

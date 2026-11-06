@@ -366,6 +366,9 @@ function detail(k,sid){const e=P.eleves[k];const d=e.seances[sid];const run=runO
     [['k1','1000 m'],['k2','1000 m n°2'],['w1','C1 · 1000 m'],['w2','C2 · 1000 m']].forEach(([k,l])=>{if(d[k]){const t=parseT(d[k].t),p=parseT(d[k].tp);L.push([l,(p?fT(p)+' visé → ':'')+(t?fT(t):'–')+(d[k].ps?' · passage '+esc(d[k].ps):'')])}});
     if(d.ma)L.push(['Allures 70/80/90 %',d.ma.map(x=>x==null?'·':x+' m').join(' · ')]);if(d.mf)L.push(['3 × 3’ (annoncé/réalisé)',d.mf.map(r=>r?(r.v||'·')+'/'+(r.r||'·'):'·').join(' · ')]);
     ['en','en2'].forEach(k=>{if(d[k]&&d[k].ress==='dur')L.push(['⚠ Respiration','gêné(e) pour respirer pendant la récupération'])});}
+  {const ds=distSeance(run,sid);if(ds)L.push(['📏 Distance de la séance',ds+' m (échauffement compris)'])}
+  if(d.t3m)L.push(['Test 3’',(x=>x?fM(x)+' · vitesse '+fV(x/50)+' km/h · VMA estimée '+fV(x/50*VMA_3)+' km/h':'–')(c3dist(d.t3m))]);if(d.ann!=null)L.push(['Les anneaux 6’',num(d.ann)*20+' m']);
+  if(d.e130)L.push(['1’30 estimé (45" / 1’30)',(d.e130.e45||'·')+' / '+(d.e130.e90||'·')+' m annoncés → '+(d.e130.r45||'·')+' / '+(d.e130.r90||'·')+' m']);
   if(d.i36)L.push(['36"/36"',d.i36.map(x=>x||'·').join(' ')]);
   if(d.al)L.push(['4 allures (annonce/réalisé)',d.al.map(r=>r?(r.an||'·')+'/'+(r.re||'·')+fcRecTxt(r):'·').join(d.al.some(r=>r&&r.fc)?'<br>':' · ')]);
   if(d.ct)L.push(['Contrat de tours',d.ct.map(r=>r?(r.c||'·')+'/'+(r.r||'·'):'·').join(' · ')]);
@@ -407,7 +410,7 @@ const FR=[0.25,0.5,0.75,1];
 function prepa(e){const run=runOf(e),L=sessOf(e.cy);const ech=[],amb=[],reg=[];
   L.forEach(s=>{const d=e.seances[s.id];if(!hasData(d)||d.st)return;const c=ctx(run,s.id,d);
     s.blocks.map(bk).forEach(([ty,a1])=>{
-      if(ty==='warm'||ty==='warmT'){const wc=d.wc||[];ech.push(WARM_EX.filter(G=>G.some(x=>wc.includes(x[0]))).length/3)}
+      if(ty==='warm'||ty==='warmT'){const wc=d.wc||[];ech.push(Math.min(1,WARM_EX.filter(G=>G.some(x=>wc.includes(x[0]))).length/WARM_EX.length))}
       if((ty==='p130'&&num(d[a1]&&d[a1].proj)!=null)||(ty==='c3'&&num(d[a1]&&d[a1].v)!=null)||(ty==='c500'&&parseT(d[a1]&&d[a1].tp)!=null))amb.push(ambition(ty,c,a1)?1:0);
       if(ty==='txt')reg.push(String(d[a1]||'').trim().length>=8?1:0);
       if(ty==='pf'||ty==='pfT')reg.push(d.pf&&d.pf.length?1:0);
@@ -478,9 +481,9 @@ function exporter(type){if(!P.classe)return toast('Choisis une classe.');const c
     eleves().forEach(k=>{const e=P.eleves[k];if(!e)return;const run=runOf(e);const [TT,N]=totaux(e);const b6=aflOf(run,e.seances[ev[0]],cy),e8=T?aflOf(run,e.seances[ev[1]],cy):a1Sec(run,e);
       const ex=T?[e8&&e8.t1?fT(e8.t1):'',e8&&e8.t2?fT(e8.t2):'',e8&&e8.r130?R(e8.r130):'',AFLMAX(cy,e).join('/')]:[e8?R(e8.d3||0):'',e8?R(e8.r130||0):''];
       rows.push([e.classe,e.nom,e.prenom,e.sexe||'',fV(vmaDe(e)),TT,N,N?R(100*TT/N):'',degreeOf(TT,N)||'',...L.map(s=>{const x=tenR(run,s.id);return x[1]?x[0]+'/'+x[1]:(e.seances[s.id]&&e.seances[s.id].st)||''}),...L.map(s=>starOf(k,s.id).a2?1:''),...L.map(s=>starOf(k,s.id).a3?1:''),b6&&b6.tot!=null?b6.tot:'',...ex,e8&&e8.tot!=null?e8.tot:'',e.afl2||'',e.afl3||'',...(T?[]:[e.part||'',e8&&e8.rattrapage?'oui':'']),(x=>x==null?'':x)(noteTot(e,cy,e8)),...tenueRetard(k).map(x=>x||'')])})}
-  else{rows=[['Classe','Élève','Séance','Date','Reçu par','Statut','Projets tenus','Tentés','Écart (m)','Écart 500 m (s)','VMA','Effort (RPE)','Charge (UA)','Coach','Coach remplaçant','Pratique adaptée','Réussite','Conseil','Prochaine fois','FC fin de série','FC récup 1 min','Baisse en 1 min']];
+  else{rows=[['Classe','Élève','Séance','Date','Reçu par','Statut','Projets tenus','Tentés','Écart (m)','Écart 500 m (s)','VMA','Effort (RPE)','Charge (UA)','Distance (m)','Coach','Coach remplaçant','Pratique adaptée','Réussite','Conseil','Prochaine fois','FC fin de série','FC récup 1 min','Baisse en 1 min']];
     eleves().forEach(k=>{const e=P.eleves[k];if(!e)return;L.forEach(s=>{const d=e.seances[s.id];if(!d)return;const r=e.recu[s.id]||{};const [t,n]=tenR(runOf(e),s.id);const bl=d.bl||{};const c=e.coach[s.id];
-      const sm=statut(k,s.id);rows.push([e.classe,e.full,s.n,r.date||'',r.src==='qr'?'QR':'fichier',sm.manuel?STATUTS[sm.c]:d.st?ST_TXT[d.st]:'présent',n?t:'',n||'',(x=>x==null?'':R(x))(ecartOf(s.id,d)),(x=>x==null?'':R(x))(ecartT(s.id,d)),fV(vmaOf(runOf(e),s.id)),bl.rpe||'',chargeOf(d)||'',c?c.n:'',c&&c.rep?'oui':'',d.ad?'oui':'',bl.reu||'',bl.con||'',bl.nx||'',...(f=>[f,num(bl.fcr)!=null?num(bl.fcr):'',f!==''&&num(bl.fcr)!=null?f-num(bl.fcr):''])(num(bl.fc)!=null?num(bl.fc):'')])})})}
+      const sm=statut(k,s.id);rows.push([e.classe,e.full,s.n,r.date||'',r.src==='qr'?'QR':'fichier',sm.manuel?STATUTS[sm.c]:d.st?ST_TXT[d.st]:'présent',n?t:'',n||'',(x=>x==null?'':R(x))(ecartOf(s.id,d)),(x=>x==null?'':R(x))(ecartT(s.id,d)),fV(vmaOf(runOf(e),s.id)),bl.rpe||'',chargeOf(d)||'',distSeance(runOf(e),s.id)||'',c?c.n:'',c&&c.rep?'oui':'',d.ad?'oui':'',bl.reu||'',bl.con||'',bl.nx||'',...(f=>[f,num(bl.fcr)!=null?num(bl.fcr):'',f!==''&&num(bl.fcr)!=null?f-num(bl.fcr):''])(num(bl.fc)!=null?num(bl.fc):'')])})})}
   telecharger('DF_'+slug(P.classe)+'_'+type+'.csv',csv(rows))}
 
 /* ---------- Évènements ---------- */

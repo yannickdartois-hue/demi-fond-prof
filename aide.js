@@ -1,6 +1,11 @@
 /* aide.js — mode d'emploi de l'outil prof demi-fond (lu par eps-aide.js) */
 window.EPS_AIDE={appli:'Demi-fond · Outil prof',bouton:false,pied:'Toutes les données restent sur cet appareil : pensez à la sauvegarde après chaque import.',publics:[
 {id:'prof',titre:'Professeur',chapitres:[
+{t:'Séances revues (novembre 2026)',html:`<ul>
+<li><b>Seconde</b> : plus de 36"/36". S2 = test de 3’ à fond (vitesse sur 3’ = distance ÷ 50 pour les cibles d’épreuve ; VMA estimée = ÷ 58 pour les récupérations et les séries notées « % de ta VMA »). Séries tirées de la banque : 4 × 400 m (S2), 12 × 125 m (S3), 2 × (400 + 200 m) (S4), 6 × 300 m (S5), répétition générale 3’ / 10’ / 1’30 (S7).</li>
+<li><b>Terminale</b> : T1 avec 1’30 estimé, T3 avec 4 × 250 m à l’allure du 500 m et 5 + 5 × 36"/36", T4 en version complète (6 × 1’12 à 95 %, pyramide 125 → 500 → 125 m), re-test en T5 avec 3 × (300 + 200 m), T6 avec 2 × 500 m et 10’ de récupération, T8 encadrée (≤ 110 % VMA, ≤ 1500 m rapides).</li>
+<li><b>Échauffement</b> illustré à chaque séance et <b>distance de la séance</b> dans le détail et l’export « Séances ».</li>
+</ul>`},
 {t:'🚶 Parcours marche (asthme, avis médical)',html:`<ul>
 <li>Pour un élève dont l’asthme ou un certificat d’inaptitude partielle justifie de marcher : dans son carnet, onglet Groupe → <b>Parcours marche</b>, sur son nom. Son camarade continue à courir et le coache.</li>
 <li>Mêmes numéros de séance que la classe (code du cours, appel, envoi communs), mais des séances de marche : technique et mesure de la vitesse de marche (3’ à fond ÷ 50), allures, 1000 m, fractionné, projets.</li>
