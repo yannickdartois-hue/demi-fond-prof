@@ -4,6 +4,8 @@
    copies de secours), suit chaque élève séance par séance, prépare la note (AFL1, AFL2, AFL3).
    Données gardées sur cet appareil uniquement (localStorage) : exporter des sauvegardes.
    ===================================================================== */
+const AVT=(n,b,c)=>window.EPSAvatar?EPSAvatar(n,b,c):'';
+
 'use strict';
 const APP_VERSION='v2 · 23/10/2026';
 const CLEP='dfp-v1';
@@ -237,7 +239,7 @@ function vieilleAnnee(){if(DEMO)return null;const now=anneeSco(Date.now());let o
 function rappelArchive(){const y=vieilleAnnee();return y==null?'':`<section class="card rappel-archive"><h3>Nouvelle année scolaire</h3><p class="small">L’outil contient encore des séances de ${y}-${y+1}. Archive-les avant d’importer les classes de cette année : la sauvegarde est téléchargée, puis l’outil repart à zéro.</p><button class="btn sm pri" data-act="archiver">Archiver ${y}-${y+1} et repartir à zéro</button></section>`}
 function vClasses(){
   const C=Object.keys(P.classesL).sort((a,b)=>a.localeCompare(b,'fr'));
-  return `${rappelArchive()}${DEMO?'':`<section class="card demo-carte"><h3>👀 Découvrir l’outil (démo)</h3><p class="small muted">Deux classes fictives déjà remplies (Seconde et Terminale) : appel, suivi des séances, fiches élèves, note, pilotage. Rien n’est enregistré et tes vraies données ne sont pas touchées. Idéal pour montrer l’outil à un collègue.</p><div class="row wrap"><button class="btn pri" data-act="demo">Ouvrir la démo</button><a class="btn" href="../demi-fond-eleves/?demo">Démo de l’appli élève</a></div></section>`}
+  return `${!C.length?AVT('prof','Bienvenue ! Commence par importer la liste Pronote de ta classe.'):''}${rappelArchive()}${DEMO?'':`<section class="card demo-carte"><h3>👀 Découvrir l’outil (démo)</h3><p class="small muted">Deux classes fictives déjà remplies (Seconde et Terminale) : appel, suivi des séances, fiches élèves, note, pilotage. Rien n’est enregistré et tes vraies données ne sont pas touchées. Idéal pour montrer l’outil à un collègue.</p><div class="row wrap"><button class="btn pri" data-act="demo">Ouvrir la démo</button><a class="btn" href="../demi-fond-eleves/?demo">Démo de l’appli élève</a></div></section>`}
   <section class="card"><h2>Classes</h2><h3>Importer une liste Pronote</h3>
     <p class="small muted">Pronote : liste des élèves → Exporter (xlsx, xls ou csv). Avec une colonne « Classe », plusieurs classes s’importent d’un coup ; une colonne « Sexe » remplit fille/garçon. Tu peux aussi coller la liste (un élève par ligne, « NOM Prénom »).</p>
     <div class="row wrap"><label>Classe (si le fichier ne la donne pas)<input id="cl-nom" class="in" placeholder="2nde 3"></label>
@@ -473,7 +475,7 @@ function vPilotage(){if(!P.classe)return pasDeClasse('Pilotage');const cy=clsCy(
   <section class="card"><h3>Points d’attention</h3>${al.length?`<ul class="alist">${al.map(a=>`<li><span>${ICA[a[0]]}</span>${a[1]}</li>`).join('')}</ul>`:'<p class="muted">Rien à signaler.</p>'}</section>`}
 /* ----- Exporter ----- */
 function csv(L){return '﻿'+L.map(l=>l.map(v=>{if(typeof v==='number')v=String(v).replace('.',',');v=v==null?'':String(v);return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(';')).join('\r\n')}
-function vExport(){return `<section class="card"><h2>Exporter · ${esc(P.classe||'—')}</h2><p class="muted small">Fichiers .csv à ouvrir dans Excel ou LibreOffice (séparateur point-virgule).</p><div class="grid2">
+function vExport(){return `<section class="card"><h2>Exporter · ${esc(P.classe||'—')}</h2>${AVT('tableau','Vérifie les notes avant de les reporter dans Pronote.')}<p class="muted small">Fichiers .csv à ouvrir dans Excel ou LibreOffice (séparateur point-virgule).</p><div class="grid2">
   <div class="sub"><h3>Bilan et note</h3><p class="small muted">Une ligne par élève : VMA, projets tenus par séance, ★, AFL1 (blanche et épreuve), AFL2, AFL3, total /20.</p><button class="btn pri" data-act="csv" data-v="bilan">Télécharger</button></div>
   <div class="sub"><h3>Séances</h3><p class="small muted">Une ligne par élève et par séance : statut, projets tenus, écart, effort, charge, coach, réussite, conseil.</p><button class="btn pri" data-act="csv" data-v="seances">Télécharger</button></div></div></section>`}
 function exporter(type){if(!P.classe)return toast('Choisis une classe.');const cy=clsCy(P.classe),L=sessOf(cy),T=cy==='T',ev=T?['t7','t9']:['s6','s8'];let rows;
