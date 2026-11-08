@@ -196,8 +196,11 @@ function seanceCourante(cy){const L=sessOf(cy);if(P.seance&&L.some(s=>s.id===P.s
   let der=0;eleves().forEach(k=>{const e=P.eleves[k];if(e)L.forEach((s,i)=>{if(e.seances[s.id]&&i>der)der=i})});return P.seance=L[der].id}
 
 /* ----- Classes ----- */
-function decouperNom(t){t=String(t||'').replace(/\s+/g,' ').trim();if(!t)return null;const w=t.split(' '),maj=x=>x===x.toUpperCase()&&/[A-ZÀ-Ý]/.test(x);
-  const nom=w.filter(maj),pre=w.filter(x=>!maj(x));if(nom.length&&pre.length)return pre.join(' ')+' '+nom.join(' ');return t}
+/* « NOM Prénom » → « Prénom NOM » ; les particules en minuscules devant le nom (« de VILLIERS », « van der BERG ») restent avec lui */
+function decouperNom(t){t=String(t||'').replace(/\s+/g,' ').trim();if(!t)return null;const w=t.split(' '),maj=x=>x===x.toUpperCase()&&/[A-ZÀ-Ý]/.test(x),
+  part=x=>/^(de|du|des|d'|d’|le|la|van|von|der|den|di|da|del|dos)$/.test(x),dans=w.map(maj);
+  for(let i=w.length-2;i>=0;i--)if(!dans[i]&&part(w[i])&&dans[i+1])dans[i]=true;
+  const nom=w.filter((x,i)=>dans[i]),pre=w.filter((x,i)=>!dans[i]);if(nom.length&&pre.length)return pre.join(' ')+' '+nom.join(' ');return t}
 function lireLignes(rows,classeDefaut){
   rows=rows.map(r=>(r||[]).map(c=>c==null?'':String(c).trim()));
   const hi=rows.findIndex(r=>r.some(c=>/^(é|e)l(è|e)ve|^nom\b|^nom$|pr(é|e)nom/i.test(c)));const H=hi>=0?rows[hi].map(c=>nk(c)):[];
@@ -550,7 +553,7 @@ document.addEventListener('change',async ev=>{const t=ev.target;
   if(t.dataset.af){const [k,f]=t.dataset.af.split('|');P.eleves[k][f]=t.value.trim();sauver();const y=window.scrollY;rendre();window.scrollTo(0,y);return}
   if(['chw','chr','chn'].includes(t.id)){const v=Math.max(t.id==='chr'?0:1,R(num(t.value)||0));CH[{chw:'w',chr:'r',chn:'n'}[t.id]]=v;return rendre()}
   if(t.id==='chmid'){CH.mid=t.checked?1:0;return}if(t.id==='chvoice'){CH.voice=t.checked;return}
-  if(t.id==='resto'&&t.files[0]){try{const o=JSON.parse(await t.files[0].text());if(!o.dfProf)throw 0;if(!confirm('Remplacer les données de cet appareil par cette sauvegarde ?'))return;delete o.dfProf;P=Object.assign(vide(),o);sauver();rendre()}catch(x){alert('Ce fichier n’est pas une sauvegarde de l’outil prof.')}}
+  if(t.id==='resto'&&t.files[0]){try{const o=JSON.parse(await EPSCoffre.lireFichier(t.files[0]));if(!o.dfProf)throw 0;if(!confirm('Remplacer les données de cet appareil par cette sauvegarde ?'))return;delete o.dfProf;P=Object.assign(vide(),o);sauver();rendre()}catch(x){alert('Ce fichier n’est pas une sauvegarde de l’outil prof.')}}
 });
 ['dragover','drop'].forEach(n=>document.addEventListener(n,e=>{e.preventDefault();if(n==='drop'&&e.dataTransfer.files.length){const F=[...e.dataTransfer.files];if(P.vue==='classes')importerListe(F,'',($('#cl-nom')||{}).value||'',($('#cl-cy')||{}).value||'');else{P.vue='import';importerFichiers(F)}}}));
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
