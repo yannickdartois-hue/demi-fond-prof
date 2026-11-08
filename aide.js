@@ -21,7 +21,7 @@ window.EPS_AIDE={appli:'Demi-fond · Outil prof',bouton:false,pied:'Toutes les d
 </ol><p class="astuce">Une seule fois après cette mise à jour : refaites scanner le <b>QR de démarrage</b> (il apporte la clé de la classe). Tant qu’un téléphone ne l’a pas rescanné, il n’est pas verrouillé.</p>`},
 
 {t:'Démarrer en 5 minutes',html:`<ol>
-<li><b>Classes</b> : importez la liste Pronote (fichier xlsx/csv, ou liste collée « NOM Prénom »). Une colonne « Sexe » remplit fille/garçon.</li>
+<li><b>Classes</b> : importez la liste Pronote (fichier xlsx/csv, ou liste collée « NOM Prénom »). Une colonne « Sexe » remplit fille/garçon.</li><li><b>Toutes les classes d’un coup</b> : le fichier fait par la page « Mes classes » du portail mon-EPS. <b>Élève arrivé en cours d’année</b> : collez « NOM Prénom » avec le nom de la classe → « Ajouter ces élèves ». Classe déjà présente : l’appli demande toujours « Ajouter » ou « Remplacer la liste ». Ensuite, faites rescanner le QR de démarrage.</li>
 <li>Choisissez le <b>niveau</b> (Seconde S1-S8 ou Terminale T1-T9).</li>
 <li>Collez le <b>lien de dépôt du Nuage</b> de la classe (« Demande de fichier – téléversement seulement »). Il n’est jamais montré aux élèves.</li>
 <li>Au premier cours, touchez <span class="bouton">QR de démarrage</span> et affichez-le : chaque binôme le scanne dans l’appli élève.</li>

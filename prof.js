@@ -209,15 +209,38 @@ function lireLignes(rows,classeDefaut){
     if(iNom>=0&&iPre>=0&&r[iNom])n=r[iPre]+' '+r[iNom].toUpperCase();else if(iEl>=0)n=decouperNom(r[iEl]);else if(hi<0)n=decouperNom(r[0]);
     if(!n||/^(total|effectif)/i.test(n))return;const c=(iCl>=0&&r[iCl])||classeDefaut;if(!c)return;(out[c]=out[c]||new Map()).set(n.trim(),iSx>=0?r[iSx]:'')});
   return out}
+/* Classe déjà présente : ajouter les élèves du fichier à la liste actuelle, ou remplacer la liste */
+const cleNomL=n=>String(n||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().split(/[\s'’-]+/).filter(Boolean).sort().join(' ');
+function modeListe(C,actuelle,tout){
+  const ex=C.filter(c=>(actuelle(c)||[]).length);if(!ex.length)return Promise.resolve('remplacer');
+  const e=s=>String(s).replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
+  let petit=false;
+  const lignes=ex.map(c=>{const a=actuelle(c),ka=new Set(a.map(cleNomL)),f=[...tout[c].keys()],kf=new Set(f.map(cleNomL));
+    const nv=f.filter(n=>!ka.has(cleNomL(n))).length,abs=a.filter(n=>!kf.has(cleNomL(n))).length;if(f.length<a.length/2)petit=true;
+    return `<li><b>${e(c)}</b> : ${a.length} élève${a.length>1?'s':''} dans l’appli, ${f.length} dans le fichier — ${nv} nouveau${nv>1?'x':''}${abs?`, ${abs} absent${abs>1?'s':''} du fichier`:''}</li>`}).join('');
+  return new Promise(ok=>{const d=document.createElement('div');
+    d.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(15,20,30,.55);display:flex;align-items:center;justify-content:center;padding:16px';
+    const bt=(v,t,s,pri)=>`<button type="button" data-v="${v}" style="display:block;width:100%;text-align:left;min-height:52px;margin:8px 0 0;padding:10px 14px;border-radius:12px;border:0;font:inherit;cursor:pointer;background:${pri?'#1c2128':'#e5e9f0'};color:${pri?'#fff':'#14181f'}"><b>${t}</b><br><span style="font-size:14px;opacity:.85">${s}</span></button>`;
+    d.innerHTML=`<div role="dialog" aria-modal="true" style="background:#fff;color:#14181f;border-radius:16px;max-width:500px;width:100%;max-height:90vh;overflow:auto;padding:18px;font-size:17px;line-height:1.4;box-shadow:0 12px 40px rgba(0,0,0,.3)">
+      <h3 style="margin:0 0 6px;font-size:21px">Cette classe existe déjà</h3><ul style="margin:6px 0;padding-left:20px;font-size:15px">${lignes}</ul>
+      ${bt('ajout','Ajouter ces élèves','Garde la liste actuelle et ajoute seulement les noms nouveaux. Pour un élève arrivé en cours d’année.',petit)}
+      ${bt('remplacer','Remplacer la liste','La liste devient celle du fichier. Un élève absent du fichier garde ses résultats, mais passe « Hors liste ».',!petit)}
+      ${bt('','Annuler','Ne rien changer.',false)}</div>`;
+    d.addEventListener('click',ev=>{const b=ev.target.closest('button[data-v]');if(!b)return;d.remove();ok(b.dataset.v||null)});
+    document.body.appendChild(d)})}
+function fusionListe(t,anciens){const vus=new Set([...t.keys()].map(cleNomL));(anciens||[]).forEach(n=>{if(!vus.has(cleNomL(n))){t instanceof Map?t.set(n,''):t.add(n)}})}
 async function importerListe(files,texte,classeDefaut,cy){
   const lots=[];for(const f of files||[]){const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});wb.SheetNames.forEach(sn=>lots.push(XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:false,defval:''})))}
   if(texte&&texte.trim())lots.push(texte.trim().split(/\r?\n/).map(l=>l.split(/\t|;/)));
   const tout={};lots.forEach(rows=>Object.entries(lireLignes(rows,classeDefaut)).forEach(([c,m])=>{tout[c]=tout[c]||new Map();m.forEach((sx,n)=>tout[c].set(n,sx))}));
   const C=Object.keys(tout);if(!C.length){alert(classeDefaut?'Aucun nom trouvé.':'Pas de colonne « Classe » dans le fichier : écris le nom de la classe avant d’importer.');return}
+  const avant={};C.forEach(c=>avant[c]=((P.classesL[c]||{}).eleves||[]).slice());
+  const mode=await modeListe(C,c=>avant[c],tout);if(!mode)return;
+  if(mode==='ajout')C.forEach(c=>fusionListe(tout[c],avant[c]));
   C.forEach(c=>{const old=P.classesL[c]||{lien:'',cy:cy||(/^t/i.test(c)?'T':'S')};const L=[...tout[c].keys()].sort((a,b)=>nomDe(a).localeCompare(nomDe(b),'fr')||a.localeCompare(b,'fr'));
     P.classesL[c]={eleves:L,lien:old.lien||'',cy:cy||old.cy||'S'};
     tout[c].forEach((sx,n)=>{const s=String(sx||'').trim().toUpperCase();if(!s)return;const [k,e]=eleveDe(c,n,P.classesL[c].cy);if(!e.sexe)e.sexe=/^F/.test(s)?'F':/^(M|G|H)/.test(s)?'G':''})});
-  journal('Listes importées : '+C.map(c=>c+' ('+tout[c].size+')').join(', '));P.classe=C[0];sauver();rendre();
+  journal('Listes importées : '+C.map(c=>c+' ('+tout[c].size+')').join(', '));if(mode==='ajout'){const r=C.map(c=>{const ka=new Set(avant[c].map(cleNomL)),nv=[...tout[c].keys()].filter(n=>!ka.has(cleNomL(n)));return c+' : '+(nv.length?'+'+nv.length+' ('+nv.join(', ')+')':'aucun nouveau nom')+' → '+tout[c].size+' élèves'});setTimeout(()=>alert('Élèves ajoutés\n'+r.join('\n')+'\n\nPense à refaire scanner le QR de démarrage aux groupes de cette classe.'),50)}P.classe=C[0];sauver();rendre();
 }
 const b64u=u=>{let x='';new Uint8Array(u).forEach(c=>x+=String.fromCharCode(c));return btoa(x).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')};
 const deb64=t=>Uint8Array.from(atob(String(t).replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
