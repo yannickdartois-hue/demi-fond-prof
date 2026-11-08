@@ -230,7 +230,7 @@ function modeListe(C,actuelle,tout){
     document.body.appendChild(d)})}
 function fusionListe(t,anciens){const vus=new Set([...t.keys()].map(cleNomL));(anciens||[]).forEach(n=>{if(!vus.has(cleNomL(n))){t instanceof Map?t.set(n,''):t.add(n)}})}
 async function importerListe(files,texte,classeDefaut,cy){
-  const lots=[];for(const f of files||[]){const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});wb.SheetNames.forEach(sn=>lots.push(XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:false,defval:''})))}
+  const lots=[];for(const f of files||[]){const buf=await f.arrayBuffer();let wb;if(/\.(csv|txt)$/i.test(f.name)||/text|csv/.test(f.type)){let t;try{t=new TextDecoder('utf-8',{fatal:true}).decode(buf)}catch(e){t=new TextDecoder('windows-1252').decode(buf)}t=t.replace(/^\uFEFF/,'');const l0=t.split(/\r?\n/)[0],sep=['\t',';',','].map(c=>[c,l0.split(c).length]).sort((a,b)=>b[1]-a[1])[0][0];wb=XLSX.read(t,{type:'string',FS:sep})}else wb=XLSX.read(buf,{type:'array'});wb.SheetNames.forEach(sn=>lots.push(XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:false,defval:''})))}
   if(texte&&texte.trim())lots.push(texte.trim().split(/\r?\n/).map(l=>l.split(/\t|;/)));
   const tout={};lots.forEach(rows=>Object.entries(lireLignes(rows,classeDefaut)).forEach(([c,m])=>{tout[c]=tout[c]||new Map();m.forEach((sx,n)=>tout[c].set(n,sx))}));
   const C=Object.keys(tout);if(!C.length){alert(classeDefaut?'Aucun nom trouvé.':'Pas de colonne « Classe » dans le fichier : écris le nom de la classe avant d’importer.');return}
