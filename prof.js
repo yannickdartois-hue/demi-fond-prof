@@ -207,7 +207,7 @@ function lireLignes(rows,classeDefaut){
   const col=re=>H.findIndex(h=>re.test(h));const iNom=col(/^nom( de famille)?$/),iPre=col(/^prenom/),iEl=col(/^eleve|^nom prenom|^nom et prenom|^identite/),iCl=col(/^classe/),iSx=col(/^sexe|^genre/);
   const out={};rows.slice(hi+1).forEach(r=>{let n='';
     if(iNom>=0&&iPre>=0&&r[iNom])n=r[iPre]+' '+r[iNom].toUpperCase();else if(iEl>=0)n=decouperNom(r[iEl]);else if(hi<0)n=decouperNom(r[0]);
-    if(!n||/^(total|effectif)/i.test(n))return;const c=(iCl>=0&&r[iCl])||classeDefaut;if(!c)return;(out[c]=out[c]||new Map()).set(n.trim(),iSx>=0?r[iSx]:'')});
+    if(!n||/^(total|effectif)/i.test(n))return;const c=classeDefaut||(iCl>=0&&r[iCl]);if(!c)return; /* nom écrit = groupe : remplace la classe Pronote (groupes de Terminale) */(out[c]=out[c]||new Map()).set(n.trim(),iSx>=0?r[iSx]:'')});
   return out}
 /* Classe déjà présente : ajouter les élèves du fichier à la liste actuelle, ou remplacer la liste */
 const cleNomL=n=>String(n||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().split(/[\s'’-]+/).filter(Boolean).sort().join(' ');
@@ -268,7 +268,7 @@ function vClasses(){
   return `${!C.length?AVT('prof','Bienvenue ! Commence par importer la liste Pronote de ta classe.'):''}${rappelArchive()}${DEMO?'':`<section class="card demo-carte"><h3>👀 Découvrir l’outil (démo)</h3><p class="small muted">Deux classes fictives déjà remplies (Seconde et Terminale) : appel, suivi des séances, fiches élèves, note, pilotage. Rien n’est enregistré et tes vraies données ne sont pas touchées. Idéal pour montrer l’outil à un collègue.</p><div class="row wrap"><button class="btn pri" data-act="demo">Ouvrir la démo</button><a class="btn" href="../demi-fond-eleves/?demo">Démo de l’appli élève</a></div></section>`}
   <section class="card"><h2>Classes</h2><h3>Importer une liste Pronote</h3>
     <p class="small muted">Pronote : liste des élèves → Exporter (xlsx, xls ou csv). Avec une colonne « Classe », plusieurs classes s’importent d’un coup ; une colonne « Sexe » remplit fille/garçon. Tu peux aussi coller la liste (un élève par ligne, « NOM Prénom »).</p>
-    <div class="row wrap"><label>Classe (si le fichier ne la donne pas)<input id="cl-nom" class="in" placeholder="2nde 3"></label>
+    <div class="row wrap"><label>Classe ou groupe (rempli : remplace la classe Pronote du fichier, ex. groupe de Terminale)<input id="cl-nom" class="in" placeholder="2nde 3"></label>
      <label>Niveau<select id="cl-cy" class="in sel"><option value="">selon le nom (« T… » = Terminale)</option><option value="S">Seconde (S1-S8)</option><option value="T">Terminale (T1-T9)</option></select></label></div>
     <div class="row wrap"><label class="btn pri" for="cl-fic">Choisir le fichier Pronote</label><input id="cl-fic" type="file" accept=".xlsx,.xls,.csv,.ods,.txt" hidden multiple></div>
     <label>Ou coller la liste<textarea id="cl-txt" class="in" rows="4" placeholder="DUPONT Marie&#10;MARTIN Léo"></textarea></label><button class="btn sm" data-act="clcoller">Importer la liste collée</button></section>
