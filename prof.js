@@ -256,7 +256,7 @@ function qrPlein(titre,sous,parts){const d=document.createElement('div');d.class
   const h=parts.length>1?setInterval(()=>{i=(i+1)%parts.length;z.innerHTML=svgQR(parts[i]);n.textContent=(i+1)+' / '+parts.length+' · la tablette vise jusqu’au bout'},1100):null;
   d.querySelector('button').onclick=()=>{if(h)clearInterval(h);d.remove()};document.body.appendChild(d)}
 async function qrDemarrage(c){const L=P.classesL[c],k=await clePublique();if(!L.cc){L.cc=EPSCode.nouvelleCle();sauver()}
-  const txt=await DFQR.encoder({a:'DFE',v:1,t:'C',c,y:L.cy||'S',l:L.eleves,u:L.lien||'',k,cc:L.cc});
+  const txt=await DFQR.encoder({a:'DFE',v:1,t:'C',c,y:L.cy||'S',l:L.eleves,u:L.lien||'',k,cc:L.cc,cj:await EPSCode.cjDuJour('dfp',c,L.cc)});
   qrPlein('Classe '+esc(c)+' · demi-fond '+CYC[L.cy||'S'].label,'Appli élève : « Scanner le QR de la classe » (accueil, ou Groupe → Nouvelle liste de classe)',[txt])}
 /* rappel d'archivage : des séances reçues pendant une année scolaire précédente (l'année scolaire commence le 15 août) */
 const anneeSco=ms=>{const d=new Date(ms);return d.getFullYear()-((d.getMonth()<7||(d.getMonth()===7&&d.getDate()<15))?1:0)};

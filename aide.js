@@ -17,6 +17,7 @@ window.EPS_AIDE={appli:'Demi-fond · Outil prof',bouton:false,pied:'Toutes les d
 <li>Les élèves utilisent leur téléphone : sans verrou, ils pourraient remplir chez eux des séances à l’avance. Le code du cours l’empêche.</li>
 <li>Début de cours : Classes → <span class="bouton">🔑 Code du cours</span>, vérifiez la séance, écrivez les 4 chiffres au tableau.</li>
 <li>Chaque groupe tape le code : la séance du jour s’ouvre sur son téléphone pendant 2 heures. Sans code, l’appli se consulte mais on ne peut rien saisir.</li>
+<li><b>Plus rapide : le QR du jour.</b> Ouvrez d’abord 🔑 Code du cours (bonne séance), puis affichez le QR de démarrage : scanné par un binôme, il ouvre la séance sans rien taper. Le code au tableau reste valable.</li>
 <li>Le code ne vaut que pour cette séance et ce jour-là. Pour préparer un cours, changez la date : le code s’affiche à l’avance. Aucune connexion nécessaire.</li>
 </ol><p class="astuce">Une seule fois après cette mise à jour : refaites scanner le <b>QR de démarrage</b> (il apporte la clé de la classe). Tant qu’un téléphone ne l’a pas rescanné, il n’est pas verrouillé.</p>`},
 
