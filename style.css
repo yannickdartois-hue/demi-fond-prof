@@ -373,3 +373,6 @@ table.pt th.l{position:sticky;left:0;z-index:1}
 }
 @media (max-width:900px){nav.otop{gap:4px}nav.otop button{padding-left:9px;padding-right:9px;font-size:14px}}
 
+
+/* Logo de l’en-tête = icône de l’écran d’accueil (même image que l’appli installée) */
+header img.logo{border-radius:10px;object-fit:cover;background:#fff}
