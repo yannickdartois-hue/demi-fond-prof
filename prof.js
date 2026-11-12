@@ -395,19 +395,43 @@ function vEleves(){if(!P.classe)return pasDeClasse('Élèves');const cy=clsCy(P.
 /* ----- Fiche élève ----- */
 function vFiche(){const k=P.eleve,e=P.eleves[k];if(!e){P.vue='eleves';return vEleves()}
   const cy=e.cy,L=sessOf(cy),run=runOf(e);const [TT,N]=totaux(e);const dg=degreeOf(TT,N);const autres=eleves().filter(x=>x!==k);
-  /* courbes : on réutilise l'écran « Ma progression » du carnet sur un groupe d'un seul élève */
   DB.binomes=[{id:'fiche',cy,runners:[Object.assign({prenom:e.prenom,nom:e.nom},run)]}];V={bin:'fiche',v:'prog'};
   const prog=progView().replace('<h2>Ma progression</h2>','').replace(/<h3>[^<]*<\/h3>/,'');
+  /* séances : jusqu'à la séance du jour (et toute séance déjà reçue après) */
+  const ic=L.findIndex(s=>s.id===seanceCourante(cy)),last=Math.max(ic,...L.map((s,i)=>hasData(e.seances[s.id])?i:-1));const LV=L.slice(0,last+1);
+  const faites=LV.filter(s=>{const d=e.seances[s.id];return d&&!d.st});
+  const echN=faites.filter(s=>{const x=echOf(s,e.seances[s.id]);return x&&x.n>=x.N}).length,echT=faites.filter(s=>echOf(s,e.seances[s.id])).length;
+  const bilN=faites.filter(s=>bilanFait(s,e.seances[s.id])).length;const mar=isM(run);
+  const pc=(a,b)=>b?a/b:null,cl=r=>r==null?'':heat(r);
+  const bloc=(cls,titre,items)=>`<div class="fbloc ${cls}"><h3>${titre}</h3><div class="fitems">${items.filter(Boolean).join('')}</div></div>`;
+  const it=(lab,val,r)=>`<div class="fit ${cl(r)}"><span>${lab}</span><b>${val}</b></div>`;
+  const ligne=s=>{const d=e.seances[s.id],st=statut(k,s.id),r=e.recu[s.id];const [t,n]=d?tenR(run,s.id):[0,0];const bl=(d&&d.bl)||{};
+    const ok=d&&!d.st,ech=ok?echOf(s,d):null,bf=ok?bilanFait(s,d):null,manque=!d&&['rien','oubli'].includes(st.c);
+    return `<tr class="${manque?'manque':''}${ok?' clic':''}"${ok?` data-act="det" data-k="${esc(k)}" data-v="${s.id}"`:''}><th><span class="spill ${s.eval?'ev':''}">${s.n}</span></th>
+     <td class="${manque?'h1':''}">${STATUTS[st.c]}${d&&d.st==='bl'?'<br><small>rôle tenu</small>':''}</td>
+     <td class="${ok&&n?heat(t/n):''}">${ok?(n?`<b>${t} / ${n}</b>`:'aucun projet'):'–'}</td>
+     <td class="${ech?ech.n>=ech.N?'h3':ech.n?'h1':'h0':''}">${ech?ech.n+' / '+ech.N:'–'}</td>
+     <td class="${bf==null?'':bf?'h3':'h0'}">${bf==null?'–':bf?'✓':'✗'}</td>
+     <td class="small l">${(e.groupe[s.id]||[]).map(x=>esc(prenomDe(x))).join(', ')}${e.coach[s.id]?'<br>coach '+esc(prenomDe(e.coach[s.id].n))+(e.coach[s.id].rep?' (remplaçant)':''):''}</td>
+     <td class="small l">${esc(bl.reu||'')}${bl.con?'<br><i>conseil :</i> '+esc(bl.con):''}</td>
+     <td class="small">${r?(r.src==='qr'?'QR':'en ligne')+'<br>'+esc(dateFr(r.date)):'–'}</td></tr>`};
   return `<div class="row wrap"><button class="btn sm" data-act="vue" data-v="eleves">← Élèves</button><button class="btn sm" data-act="imprimer">Imprimer la fiche</button></div>
-  <section class="card"><h2>${nm(e)} <span class="cls ${cy==="T"?"t":"s"}">${esc(e.classe)} · ${CYC[cy].label}</span></h2>
-   <div class="outs">${out('VMA',fV(vmaDe(e))+' km/h')}${out('Projets tenus',N?TT+' / '+N+' ('+R(100*TT/N)+' %)':'–','hi')}${out('Degré AFL2',dg?DEG_TXT[dg]:'–')}${out('Comme coach',coachTxt(k))}${out('Écart début → fin',ecTrend(e))}${out('Sexe',e.sexe==='F'?'fille':e.sexe==='G'?'garçon':'?')}${(([rt,tn])=>rt||tn?out('Retards · tenue',rt+' · '+tn):'')(tenueRetard(k,e.classe))}</div>
-   ${e.sexe?'':`<p class="warn small">Fille ou garçon ? (barèmes différents) <button class="btn sm" data-act="sexe" data-k="${esc(k)}" data-v="F">Fille</button> <button class="btn sm" data-act="sexe" data-k="${esc(k)}" data-v="G">Garçon</button></p>`}</section>
-  <section class="card"><h3>Séances</h3><div class="tw"><table class="tt l"><tr><th>Séance</th><th>Statut</th><th>Tenus</th><th>Reçu</th><th>Groupe · coach</th><th>Ce que dit le coach</th></tr>${L.map(s=>{const d=e.seances[s.id],st=statut(k,s.id),r=e.recu[s.id];const [t,n]=d?tenR(run,s.id):[0,0];const bl=(d&&d.bl)||{};
-    return `<tr><th>${s.n}</th><td>${STATUTS[st.c]}</td><td>${d&&!d.st?`<button class="cell" data-act="det" data-k="${esc(k)}" data-v="${s.id}">${n?t+'/'+n:'✓'}</button>`:'–'}</td><td class="small">${r?(r.src==='qr'?'QR':'en ligne')+' '+esc(dateFr(r.date)):'–'}</td><td class="small">${(e.groupe[s.id]||[]).map(x=>esc(prenomDe(x))).join(', ')}${e.coach[s.id]?' · coach '+esc(prenomDe(e.coach[s.id].n))+(e.coach[s.id].rep?' (remplaçant)':''):''}</td><td class="small">${esc(bl.reu||'')}${bl.con?' · '+esc(bl.con):''}</td></tr>`}).join('')}</table></div></section>
-  <section class="card">${prog}</section>
-  <section class="card"><h3>QR de reprise</h3><p class="small muted">Tablette perdue, code oublié, changement de groupe sans l’ancienne tablette : ce QR rend à l’élève toutes les séances que tu as reçues. Dans son groupe : Groupe → « Scanner le QR de l’élève ».</p><button class="btn pri" data-act="reprise" data-k="${esc(k)}">Afficher le QR de reprise</button></section>
-  ${autres.length?`<section class="card"><h3>Même élève sous un autre nom ?</h3><p class="small muted">Si ${esc(e.full)} apparaît aussi avec une faute de frappe, fusionne les deux.</p>
-    <div class="row wrap"><select id="fusion" class="in sel"><option value="">— Choisir —</option>${autres.map(a=>`<option value="${esc(a)}">${esc(nomAff(a))}</option>`).join('')}</select><button class="btn sm" data-act="fusionner">Fusionner dans ${esc(e.prenom)}</button></div></section>`:''}`}
+  <section class="card fiche"><div class="fhead ${cy==='T'?'t':'s'}"><h2>${nm(e)}</h2><span>${esc(e.classe)} · ${CYC[cy].label}${mar?' · 🚶 parcours marche':''} · ${e.sexe==='F'?'fille':e.sexe==='G'?'garçon':'sexe ?'}</span></div>
+   ${e.sexe?'':`<p class="warn small">Fille ou garçon ? (barèmes différents) <button class="btn sm" data-act="sexe" data-k="${esc(k)}" data-v="F">Fille</button> <button class="btn sm" data-act="sexe" data-k="${esc(k)}" data-v="G">Garçon</button></p>`}
+   <div class="fblocs">
+    ${bloc('a1','🏃 Courir · AFL1',[it('VMA',fV(vmaDe(e))+' km/h'),it('Projets tenus',N?TT+' / '+N+' · '+R(100*TT/N)+' %':'–',pc(TT,N)),it('Écart début → fin',ecTrend(e))])}
+    ${bloc('a2','📒 S’entraîner · AFL2',[it('Degré',dg?DEG_TXT[dg]:'–',dg?dg/4:null),echT?it('Échauffements complets',echN+' / '+echT,pc(echN,echT)):'',it('Bilans faits',faites.length?bilN+' / '+faites.length:'–',pc(bilN,faites.length))])}
+    ${bloc('a3','⏱ Coacher · AFL3',[it('Comme coach',coachTxt(k))])}
+    ${(([rt,tn])=>rt||tn?bloc('vc','🎒 Vie de classe',[it('Retards',rt||'0'),it('Oublis de tenue',tn||'0')]):'')(tenueRetard(k,e.classe))}
+   </div></section>
+  <section class="card"><h3>Séance par séance <span class="small muted">· touche une ligne pour le détail</span></h3>
+   <div class="tw"><table class="tt pt fseances"><tr><th>Séance</th><th>Présence</th><th>Projets tenus</th><th>Échauffement</th><th>Bilan</th><th>Groupe · coach</th><th>Réussite · conseil</th><th>Reçu</th></tr>${LV.map(ligne).join('')}</table></div>
+   <p class="small muted">Vert : réussi · jaune-vert : plus de la moitié · orange : à moitié · rouge : manqué. ${L.length-LV.length?(L.length-LV.length)+' séance'+(L.length-LV.length>1?'s':'')+' à venir.':''}</p></section>
+  <section class="card"><h3>Progression</h3>${prog}</section>
+  <section class="card"><details><summary><b>Outils</b> <span class="small muted">· QR de reprise, fusion de doublons</span></summary>
+   <h3>QR de reprise</h3><p class="small muted">Tablette perdue, code oublié, changement de groupe sans l’ancienne tablette : ce QR rend à l’élève toutes les séances que tu as reçues. Dans son groupe : Groupe → « Scanner le QR de l’élève ».</p><button class="btn pri" data-act="reprise" data-k="${esc(k)}">Afficher le QR de reprise</button>
+   ${autres.length?`<h3>Même élève sous un autre nom ?</h3><p class="small muted">Si ${esc(e.full)} apparaît aussi avec une faute de frappe, fusionne les deux.</p>
+    <div class="row wrap"><select id="fusion" class="in sel"><option value="">— Choisir —</option>${autres.map(a=>`<option value="${esc(a)}">${esc(nomAff(a))}</option>`).join('')}</select><button class="btn sm" data-act="fusionner">Fusionner dans ${esc(e.prenom)}</button></div>`:''}</details></section>`}
 async function qrReprise(k){const e=P.eleves[k];const se={};Object.entries(e.seances).forEach(([sid,d])=>{if(hasData(d))se[sid]=d});
   const txt=await DFQR.encoder({a:'DFE',v:1,t:'T',c:e.classe,y:e.cy,e:e.full,x:e.sexe||'',vm:e.vmaManuelle||'',se});
   qrPlein(esc(e.full)+' · reprise','Appli élève : Groupe → « Scanner le QR de l’élève »',morceaux(txt))}

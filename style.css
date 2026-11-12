@@ -380,3 +380,20 @@ header img.logo{border-radius:10px;object-fit:cover;background:#fff}
 .synth{background:var(--soft);border-radius:12px;padding:10px 12px;font-size:max(15px,var(--fs-min,15px));line-height:1.5}
 td.nowrap{white-space:nowrap}
 table.mini{border-collapse:collapse;margin:2px 0 4px;font-size:max(14px,var(--fs-min,15px))}table.mini th,table.mini td{border:1px solid var(--line);padding:3px 10px;text-align:center;background:transparent;color:inherit}table.mini th{background:var(--soft);font-weight:800}
+/* fiche élève : en-tête, blocs AFL colorés, séance par séance */
+.fhead{border-radius:14px;padding:14px 16px;margin:-4px -4px 14px;color:#fff;background:#b91c1c}.fhead.t{background:#731111}
+.fhead h2{margin:0;color:#fff}.fhead span{font-weight:700;opacity:.92}
+.fblocs{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.fbloc{border-radius:14px;padding:10px 12px;border:2px solid;border-top-width:8px}.fbloc h3{margin:0 0 8px;font-size:max(16px,var(--fs-min,15px))}
+.fbloc.a1{border-color:#dc2626;background:#fef2f2}.fbloc.a1 h3{color:#b91c1c}
+.fbloc.a2{border-color:#2563eb;background:#eff6ff}.fbloc.a2 h3{color:#1d4ed8}
+.fbloc.a3{border-color:#16a34a;background:#f0fdf4}.fbloc.a3 h3{color:#15803d}
+.fbloc.vc{border-color:#94a3b8;background:#f8fafc}.fbloc.vc h3{color:#475569}
+.fitems{display:flex;flex-direction:column;gap:6px}.fit{display:flex;justify-content:space-between;gap:10px;align-items:baseline;background:#fff;border-radius:10px;padding:7px 10px;color:#14181f}
+.fit span{font-weight:700;color:#475569}.fit b{text-align:right}.fit.h3{background:#bbf7d0}.fit.h2{background:#e2f5d3}.fit.h1{background:#fde7b0}.fit.h0{background:#fecaca}
+.spill{display:inline-block;min-width:44px;text-align:center;border-radius:999px;padding:4px 10px;background:#fee2e2;color:#991b1b;font-weight:900}.spill.ev{background:#991b1b;color:#fff}
+table.fseances tr.clic{cursor:pointer}table.fseances tr.clic:hover td{filter:brightness(.97)}table.fseances tr.manque th,table.fseances tr.manque td{color:#9a3412}
+:root[data-theme="dark"] .fbloc.a1{background:#2a1414}:root[data-theme="dark"] .fbloc.a2{background:#121d33}:root[data-theme="dark"] .fbloc.a3{background:#10261a}:root[data-theme="dark"] .fbloc.vc{background:#1b2028}
+:root[data-theme="dark"] .fit{background:#11161d;color:#e6edf3}:root[data-theme="dark"] .fit span{color:#9aa5b3}
+@media print{.fhead{-webkit-print-color-adjust:exact;print-color-adjust:exact}.fbloc,.fit{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+table.fseances td.l{text-align:left}.fit b small{font-weight:600}
