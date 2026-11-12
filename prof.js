@@ -438,7 +438,7 @@ const FR=[0.25,0.5,0.75,1];
 function prepa(e){const run=runOf(e),L=sessOf(e.cy);const ech=[],amb=[],reg=[];
   L.forEach(s=>{const d=e.seances[s.id];if(!hasData(d)||d.st)return;const c=ctx(run,s.id,d);
     s.blocks.map(bk).forEach(([ty,a1])=>{
-      if(ty==='warm'||ty==='warmT'){const wc=d.wc||[];ech.push(Math.min(1,WARM_EX.filter(G=>G.some(x=>wc.includes(x[0]))).length/WARM_EX.length))}
+      if(ty==='warm'||ty==='warmT'){const wc=d.wc||[];ech.push(Math.min(1,WARM_EX.filter((G,gi)=>wc.includes('P'+(gi+1))||G.some(x=>wc.includes(x[0]))).length/WARM_EX.length))}
       if((ty==='p130'&&num(d[a1]&&d[a1].proj)!=null)||(ty==='c3'&&num(d[a1]&&d[a1].v)!=null)||(ty==='c500'&&parseT(d[a1]&&d[a1].tp)!=null))amb.push(ambition(ty,c,a1)?1:0);
       if(ty==='txt')reg.push(String(d[a1]||'').trim().length>=8?1:0);
       if(ty==='pf'||ty==='pfT')reg.push(d.pf&&d.pf.length?1:0);

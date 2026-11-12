@@ -106,7 +106,9 @@ const GAMMES=[
 WARM_EX[4]=GAMMES.map(g=>[g[0],g[1]]);
 /* anciens codes (carnets déjà remplis) */
 const WARM_OLD=[['ha','Hanches'],['cr','Pas croisés'],['sk','Skipping'],['gr','Foulées griffées'],['bo','Foulées bondissantes']];
-const WARM_NAME=Object.fromEntries([].concat(...WARM_EX,WARM_OLD));
+/* coches globales par partie (échauffement commun au binôme) */
+const WARM_PART=[['P1','Cardio fait'],['P2','Articulaire fait'],['P3','Étirements faits'],['P4','Renforcement fait'],['P5','Gammes faites'],['P6','Fin d’échauffement faite']];
+const WARM_NAME=Object.fromEntries([].concat(...WARM_EX,WARM_OLD,WARM_PART));
 
 /* =====================================================================
    PARCOURS MARCHE — élèves asthmatiques (ou autre avis médical) : un élève
