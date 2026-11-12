@@ -379,3 +379,4 @@ header img.logo{border-radius:10px;object-fit:cover;background:#fff}
 /* écran Séance */
 .synth{background:var(--soft);border-radius:12px;padding:10px 12px;font-size:max(15px,var(--fs-min,15px));line-height:1.5}
 td.nowrap{white-space:nowrap}
+table.mini{border-collapse:collapse;margin:2px 0 4px;font-size:max(14px,var(--fs-min,15px))}table.mini th,table.mini td{border:1px solid var(--line);padding:3px 10px;text-align:center;background:transparent;color:inherit}table.mini th{background:var(--soft);font-weight:800}

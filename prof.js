@@ -411,6 +411,7 @@ function vFiche(){const k=P.eleve,e=P.eleves[k];if(!e){P.vue='eleves';return vEl
 async function qrReprise(k){const e=P.eleves[k];const se={};Object.entries(e.seances).forEach(([sid,d])=>{if(hasData(d))se[sid]=d});
   const txt=await DFQR.encoder({a:'DFE',v:1,t:'T',c:e.classe,y:e.cy,e:e.full,x:e.sexe||'',vm:e.vmaManuelle||'',se});
   qrPlein(esc(e.full)+' · reprise','Appli élève : Groupe → « Scanner le QR de l’élève »',morceaux(txt))}
+const mini=(H,rows)=>rows.length?`<table class="mini"><tr>${H.map(h=>`<th>${h}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</table>`:'–';
 function detail(k,sid){const e=P.eleves[k];const d=e.seances[sid];const run=runOf(e);const s=sessFor(run,sid);const T=sid[0]==='t';
   const [t,n]=tenR(run,sid);const a=s.eval?aflOf(run,d,T?'T':'S'):null;const bl=d.bl||{};const L=[];const vma=vmaOf(run,sid);const f=x=>esc(x==null||x===''?'–':x);
   if(isM(run)){L.push(['Parcours','🚶 marche (asthme, avis médical)']);
@@ -424,8 +425,8 @@ function detail(k,sid){const e=P.eleves[k];const d=e.seances[sid];const run=runO
   if(d.t3m)L.push(['Test 3’',(x=>x?fM(x)+' · vitesse '+fV(x/50)+' km/h · VMA estimée '+fV(x/50*VMA_3)+' km/h':'–')(c3dist(d.t3m))]);if(d.ann!=null)L.push(['Les anneaux 6’',num(d.ann)*20+' m']);
   if(d.e130)L.push(['1’30 estimé (45" / 1’30)',(d.e130.e45||'·')+' / '+(d.e130.e90||'·')+' m annoncés → '+(d.e130.r45||'·')+' / '+(d.e130.r90||'·')+' m']);
   if(d.i36)L.push(['36"/36"',d.i36.map(x=>x||'·').join(' ')]);
-  if(d.al)L.push(['4 allures (annonce/réalisé)',d.al.map(r=>r?(r.an||'·')+'/'+(r.re||'·')+fcRecTxt(r):'·').join(d.al.some(r=>r&&r.fc)?'<br>':' · ')]);
-  if(d.ct)L.push(['Contrat de tours',d.ct.map(r=>r?(r.c||'·')+'/'+(r.r||'·'):'·').join(' · ')]);
+  if(d.al)L.push(['4 allures',mini(['Allure','Annoncé','Réalisé','Pouls'],d.al.map((r,i)=>r?[String(i+1),f(r.an),f(r.re)+(num(r.an)!=null&&num(r.re)!=null?(Math.abs(num(r.re)-num(r.an))<=1?' <b class="ok">✓</b>':' <b class="ko">✗</b>'):''),num(r.fc)!=null?'♥ '+esc(r.fc)+(num(r.fcr)!=null?' → '+esc(r.fcr):''):'–']:null).filter(Boolean))+'<small class="muted">en plots ; ✓ = à 1 plot près</small>']);
+  if(d.ct)L.push(['Contrat de tours',mini(['Manche','Contrat','Réalisé'],d.ct.map((r,i)=>r?[String(i+1),f(r.c),f(r.r)+(num(r.c)!=null&&num(r.r)!=null?(num(r.r)>=num(r.c)?' <b class="ok">✓</b>':' <b class="ko">✗</b>'):'')]:null).filter(Boolean))]);
   if(d.ra)L.push(['Récup active',f(d.ra)+' grands plots']);if(d.ra2)L.push(['Récup active',f(d.ra2)+' m']);
   if(d.m130)L.push(['1’30 mesuré',fM(tp(d.m130.t,d.m130.p))]);
   ['c3','c3b'].forEach(c=>{if(d[c])L.push([c==='c3b'?'3’ n°2':'3’','visé '+f(d[c].v)+' · réalisé '+fM(c3dist(d[c]))+' · 2e−1re '+(c3reg(d[c])==null?'–':R(c3reg(d[c]))+' m')+(d[c].lt?' · tours '+d[c].lt.map(fT).join(' '):'')])});
@@ -444,16 +445,23 @@ function detail(k,sid){const e=P.eleves[k];const d=e.seances[sid];const run=runO
   if(d.situe)L.push(['Se situe','AFL2 degré '+f(d.situe.a2)+' · AFL3 degré '+f(d.situe.a3)]);
   {const EN={reg:{ok:'régulière',vite:'partie trop vite',lent:'trop prudente'},ress:{aise:'à l’aise',moyen:'ça allait',dur:'en difficulté'},rec:{vite:'récup rapide',lent:'récup lente'}};
    [['en','Entre deux courses'],['en2','Entre C2 et C3']].forEach(([k,t])=>{const e=d[k];if(e&&typeof e==='object'){const x=['reg','ress','rec'].map(q=>EN[q][e[q]]).filter(Boolean);if(x.length)L.push([t,esc(x.join(' · '))])}})}
-  if(d.wc||d.warm)L.push(['Échauffement',(d.wc||[]).map(c=>esc(WARM_NAME[c]||c)).join(', ')+(d.wx?' · '+esc(d.wx):'')+(d.warm?' '+d.warm.filter(Boolean).map(esc).join(' / '):'')+(d.rc?'<br>Récup : '+esc(d.rc)+(d.rc2?' / '+esc(d.rc2):''):'')]);
+  if(d.wc||d.warm||d.wfoot){const wc=d.wc||[],ex=wc.filter(c=>!/^P\d$/.test(c));L.push(['Échauffement',WARM_PART.map(([pk,lab],gi)=>{const G=WARM_EX[gi]||[],ok=wc.includes(pk)||G.some(x=>wc.includes(x[0]));return (ok?'<b class="ok">✓</b> ':'<b class="ko">✗</b> ')+esc(lab.replace(/ fai(t|ts|te|tes)$/,''))+(gi===0&&num(d.wfoot)!=null?' · footing '+num(d.wfoot)+' m':'')}).join('<br>')+(d.wx?'<br>'+esc(d.wx):'')+(d.warm?'<br>'+d.warm.filter(Boolean).map(esc).join(' / '):'')+(ex.length?`<details><summary class="small">Voir les exercices cochés (${ex.length})</summary><small>${ex.map(c=>esc(WARM_NAME[c]||c)).join(', ')}</small></details>`:'')+(d.rc?'<br>Récup : '+esc(d.rc)+(d.rc2?' / '+esc(d.rc2):''):'')])}
+  if((d.pls||[]).length)L.push(['❤ Pouls pris',d.pls.map(x=>{const h=new Date(x.h);return (isNaN(h)?'':h.getHours()+' h '+String(h.getMinutes()).padStart(2,'0')+' · ')+'<b>'+esc(x.fc)+'</b> /min'+(num(x.fcr)!=null?' → '+esc(x.fcr)+' après 1 min':'')+(x.et?' <small class="muted">(étape '+esc(x.et)+')</small>':'')}).join('<br>')]);
+  if((d.np||[]).length){const C=d.npc||{};const NPL={ann:'Les anneaux 6’',al4:'4 allures',al:'4 allures',ra:'Récupération active',ra2:'Récupération active',ct:'Contrat de tours',warm:'Échauffement',warmT:'Échauffement',rel:'Relais'},nomB=k=>{const b=s.blocks.map(bk).find(b=>b[1]===k||b[0]===k);return NPL[k]||(b&&typeof b[2]==='string'?b[2]:k)};L.push(['⏭ Exercices passés',d.np.map(k=>esc(nomB(k))+(C[k]?' · '+esc(NP_TXTP(C[k])):'')).join('<br>')])}
   if(d.aj)L.push(['Ajustement',esc(d.aj)]);if(d.pe)L.push(['Projets évaluation','3’ '+f(d.pe.v3)+' m · 1’30 '+f(d.pe.p)+' m · '+esc(d.pe.why||'')]);
   if(d.ad)L.unshift(['Présence','pratique adaptée (tolérances élargies)']);if(d.st)L.unshift(['Présence',ST_TXT[d.st]+(d.mot?' · '+esc(d.mot):'')]);
   if(d.vj)L.unshift(['VMA du jour','⚠ modifiée par l’élève : '+esc(d.vj)+' km/h (mesurée : '+fV(vma)+')']);if(d.cx)L.unshift(['Coach remplaçant',esc(d.cx.n)+' · '+esc(WHY_TXT[d.cx.why]||'')]);
+  const B=[],rw=(t,v)=>B.push(`<tr><th>${t}</th><td>${v}</td></tr>`),bf=d.st==='abs'?null:bilanFait(s,d);
+  if(!d.st||d.st==='bl'){
+    if((bl.cr||[]).some(Boolean)||bf)rw('Coach a vu',s.crit.map((c,i)=>(bl.cr&&bl.cr[i]?'☑ ':'☐ ')+esc(c)).join('<br>'));
+    if(bf===false&&!filled(bl.reu)&&!filled(bl.con)&&!filled(bl.nx)&&!filled(bl.rpe))rw('Bilan','<b class="ko">pas fait</b>');
+    if(filled(bl.reu))rw('Réussite',esc(bl.reu));if(filled(bl.con))rw('Conseil du coach',esc(bl.con));
+    if(filled(bl.rpe))rw('Effort · charge','RPE '+esc(bl.rpe)+' · '+chargeOf(d)+' UA'+(bl.fc?' · '+esc(bl.fc)+' bpm'+(num(bl.fcr)!=null?' · récup 1 min '+esc(bl.fcr):''):''));
+    if(filled(bl.pr)||filled(bl.aide))rw('Coach',[filled(bl.pr)?'pronostic '+esc(bl.pr)+(pronoErr(s,d)!=null?' (±'+R(pronoErr(s,d))+' %)':''):'',bl.aide==='1'?'conseil utile : oui':bl.aide==='0'?'conseil utile : non':''].filter(Boolean).join(' · '));
+    if(filled(bl.role))rw('Rôle',esc(bl.role));if(filled(bl.nx))rw('La prochaine fois',esc(bl.nx));}
   modal(`<h2>${esc(e.full)} · ${s.n}</h2><p class="muted small">VMA ${fV(vma)} km/h · projets tenus ${n?t+'/'+n:'–'}${a&&a.tot!=null?' · AFL1 '+a.tot+'/12':''}</p>
    <table class="tt l">${L.map(l=>`<tr><th>${l[0]}</th><td>${l[1]}</td></tr>`).join('')}
-   <tr><th>Coach a vu</th><td>${s.crit.map((c,i)=>(bl.cr&&bl.cr[i]?'☑ ':'☐ ')+esc(c)).join('<br>')}</td></tr>
-   <tr><th>Réussite / conseil</th><td>${esc(bl.reu||'–')} / ${esc(bl.con||'–')}</td></tr><tr><th>Effort · charge</th><td>${bl.rpe!=null&&bl.rpe!==''?'RPE '+esc(bl.rpe)+' · '+chargeOf(d)+' UA':'–'}${bl.fc?' · '+esc(bl.fc)+' bpm'+(num(bl.fcr)!=null?' · récup 1 min '+esc(bl.fcr)+' (−'+Math.max(0,num(bl.fc)-num(bl.fcr))+')':''):''}</td></tr>
-   <tr><th>Coach</th><td>pronostic ${esc(bl.pr||'–')}${pronoErr(s,d)!=null?' (±'+R(pronoErr(s,d))+' %)':''} · conseil utile : ${bl.aide==='1'?'oui':bl.aide==='0'?'non':'–'}</td></tr>
-   <tr><th>Rôle · prochaine fois</th><td>${esc(bl.role||'–')} · ${esc(bl.nx||'')}</td></tr></table><div class="row wrap"><button class="btn" data-act="closem">Fermer</button></div>`)}
+   ${B.join('')}</table><div class="row wrap"><button class="btn" data-act="closem">Fermer</button></div>`)}
 /* ----- Note ----- */
 const AFLMAX=(cy,e)=>{if(cy!=='T')return [4,4];const rep=(e.seances.t9&&e.seances.t9.rep)||(e.seances.t7&&e.seances.t7.rep)||'4/4';const m=String(rep).split('/').map(Number);return m.length===2&&m.every(x=>!isNaN(x))?m:[4,4]};
 const arr=(x,p)=>Math.round(x/(p||0.5))*(p||0.5);
