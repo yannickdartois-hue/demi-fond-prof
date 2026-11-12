@@ -179,15 +179,17 @@ function bandeauSauvegarde(){
 /* épreuve officielle chronométrée par le prof : l'outil CCF (chrono, temps glissés sur l'élève, barèmes BO 2021) */
 const LIEN_CCF='https://yannickdartois-hue.github.io/CCF-Demi-Fond-PROF/';
 const carteCCF=t=>`<section class="card thin ccf"><p class="small"><b>${t}</b> Pour l’épreuve chronométrée par toi (départ commun, temps glissé sur chaque élève, barèmes officiels), utilise l’outil CCF.</p><a class="btn sm pri" href="${LIEN_CCF}" target="_blank" rel="noopener">Ouvrir CCF demi-fond — prof</a></section>`;
-const ONGLETS=[['Avant'],['classes','Classes'],['Pendant'],['appel','Appel'],['import','Recevoir'],['chrono','Chrono'],['Après'],['seance','Séance'],['eleves','Élèves'],['note','Note'],['pilotage','Pilotage'],['export','Exporter']];
+const ONGLETS=[['Avant'],['classes','Classes'],['Pendant'],['chrono','Chrono'],['appel','Appel'],['import','Recevoir'],['Après'],['seance','Séance'],['eleves','Élèves'],['note','Note'],['pilotage','Pilotage'],['export','Exporter']];
 function rendre(){
   const C=classes();if(P.classe&&!C.includes(P.classe))classeParDefaut();
   document.body.dataset.cy=P.classe?clsCy(P.classe):'S';
   $('#classes').innerHTML=C.length?`<select id="selClasse" class="in sel" aria-label="Classe">${C.map(c=>`<option${c===P.classe?' selected':''}>${esc(c)}</option>`).join('')}</select>`:'';
   $('#onglets').innerHTML=ONGLETS.map(o=>o.length<2?`<span class="og">${o[0]}</span>`:`<button data-act="vue" data-v="${o[0]}" class="${P.vue===o[0]||(P.vue==='fiche'&&o[0]==='eleves')?'ici':''}">${o[1]}</button>`).join('');
-  if(P.vue!=='chrono'&&CH.run)chStop();
+  /* le chrono continue quand on change d'onglet : bandeau en haut de l'écran */
+  const chb=P.vue!=='chrono'&&CH.run&&CH.run.ph!=='done'?`<div class="chband ${CH.run.ph}"><button class="lnk" data-act="vue" data-v="chrono">⏱ ${CH.run.ph==='run'?'Course':CH.run.ph==='rest'?'Récupération':'Prêts…'} <b id="cht">${fT(Math.max(0,Math.ceil(CH.run.left)))}</b> · ${CH.run.i||0} / ${CH.n}</button><button class="btn sm" data-act="chpause">${CH.run.paused?'▶ Reprendre':'Ⅱ Pause'}</button><button class="btn sm ghost" data-act="chstop">■ Stop</button></div>`:'';
   const Vs={classes:vClasses,import:vImport,appel:vAppel,seance:vSeance,eleves:vEleves,fiche:vFiche,note:vNote,pilotage:vPilotage,chrono:()=>carteCCF('Épreuve du CCF.')+chronoView(),export:vExport};
-  $('#main').innerHTML=icons((DEMO?bandeauDemo():'')+bandeauSauvegarde()+(Vs[P.vue]||vClasses)());
+  $('#main').innerHTML=icons(chb+(DEMO?bandeauDemo():'')+bandeauSauvegarde()+(Vs[P.vue]||vClasses)());
+  if(chb){const h=document.querySelector('header'),b=document.querySelector('.chband');if(h&&b)b.style.top=(h.getBoundingClientRect().height+6)+'px'}
 }
 const render=rendre;                                     /* nom attendu par vues.js et le chrono */
 const pasDeClasse=t=>`<section class="card"><h2>${t}</h2><p class="muted">Importe d’abord la liste d’une classe (onglet Classes) ou des séances (onglet Importer).</p></section>`;
@@ -282,7 +284,11 @@ function vClasses(){
 }
 /* ----- Importer ----- */
 function vImport(){const n=Object.values(P.eleves).reduce((s,e)=>s+Object.keys(e.seances).length,0);
-  return `${rappelArchive()}<section class="card"><h2>Récupérer les séances</h2><div class="grid2">
+  return `${rappelArchive()}<section class="card nuage"><h3>☁ Recevoir les séances par le Nuage</h3><ol class="etapes3">
+    <li><b>Les élèves</b>, en fin de séance : onglet Envoyer → « Envoyer la séance en ligne ». Le fichier part dans le dossier Nuage de la classe (le lien est dans le QR de démarrage).</li>
+    <li><b>Toi, sur le Nuage</b> : ouvre le dossier de la classe → « Télécharger » : tu obtiens un fichier .zip.</li>
+    <li><b>Ici</b> : « Choisir des fichiers » ci-dessous → ce .zip. Tu peux réimporter le même dossier chaque semaine : rien n’est compté deux fois.</li></ol></section>
+  <section class="card"><h2>Récupérer les séances</h2><div class="grid2">
     <div class="sub"><h3>QR codes</h3><p class="small muted">En fin de séance, chaque élève montre son QR : scanne-les à la suite, la caméra reste ouverte. Les anciens QR du carnet numérique sont aussi acceptés.</p><button class="btn pri big" data-act="scanner">Scanner les QR codes</button></div>
     <div class="sub"><h3>Fichiers</h3><p class="small muted">Les fichiers .json déposés par les élèves, ou le dossier du Nuage téléchargé en .zip. Sur ordinateur, tu peux aussi les glisser ici.</p><label class="btn pri big" for="fic">Choisir des fichiers</label><input id="fic" type="file" multiple accept=".json,.zip,.txt,application/json,application/zip" hidden></div></div>
     <p>${n} séance${n>1?'s':''} d’élèves dans l’outil. Réimporter les mêmes fichiers ne crée pas de doublon.</p>
@@ -302,8 +308,10 @@ async function importerSecours(o){const c=JSON.parse(await ouvrirSecours(o));if(
   P.secours=P.secours||{};const id=nk(o.classe)+'|'+(o.noms||[]).map(nk).sort().join('#'),old=P.secours[id];
   if(old&&old.date>o.date)return;P.secours[id]={classe:o.classe,noms:o.noms,seance:o.seance,date:o.date,epk:o.epk,iv:o.iv,data:o.data}}
 function vSecours(){const L=Object.entries(P.secours||{}).filter(([,x])=>!P.classe||x.classe===P.classe).sort((a,b)=>a[1].noms.join().localeCompare(b[1].noms.join(),'fr'));
-  return `<section class="card"><h3>Copies de secours des carnets ${P.classe?'· '+esc(P.classe):''}</h3>
-    <p class="small muted">À chaque envoi en ligne, le carnet complet du groupe arrive aussi, chiffré : seul cet outil (ta clé) peut l’ouvrir. Tablette perdue ou effacée ? Télécharge le carnet ici puis, sur la nouvelle tablette : Groupe → « Reprendre un carnet ». Le groupe choisit un nouveau code.</p>
+  return `<section class="card"><h3>🛟 Carnets de secours (tablette perdue ou effacée, code oublié) ${P.classe?'· '+esc(P.classe):''}</h3>
+    <ul class="small"><li><b>Ce que c’est</b> : à chaque envoi en ligne, le carnet complet du groupe arrive aussi, sous forme de copie chiffrée.</li>
+    <li><b>Qui peut l’ouvrir</b> : toi seul, avec la clé de cet outil (elle est dans tes sauvegardes).</li>
+    <li><b>Comment s’en servir</b> : « Télécharger le carnet » ci-dessous, envoie le fichier sur la tablette du groupe, puis dans l’appli élève : Groupe → « Reprendre un carnet ». Le groupe choisit un nouveau code.</li></ul>
     ${L.length?`<ul class="wl">${L.map(([id,x])=>`<li><span><b>${x.noms.map(esc).join(' · ')}</b> <span class="small muted">${esc(x.classe)} · ${esc(String(x.seance||'').toUpperCase())} · ${esc(x.date)}</span></span><button class="btn sm" data-act="secours" data-v="${esc(id)}">Télécharger le carnet</button></li>`).join('')}</ul>`:'<p class="muted small">Aucune copie reçue pour l’instant (elles arrivent avec l’envoi en ligne, après le QR de démarrage).</p>'}
     ${P.cle?'':'<p class="small warn">La clé est créée au premier « QR de démarrage » : garde une sauvegarde de l’outil, sans elle les copies ne s’ouvrent plus.</p>'}</section>`}
 async function telechargerSecours(id){const x=P.secours&&P.secours[id];if(!x)return;

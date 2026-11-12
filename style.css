@@ -397,3 +397,10 @@ table.fseances tr.clic{cursor:pointer}table.fseances tr.clic:hover td{filter:bri
 :root[data-theme="dark"] .fit{background:#11161d;color:#e6edf3}:root[data-theme="dark"] .fit span{color:#9aa5b3}
 @media print{.fhead{-webkit-print-color-adjust:exact;print-color-adjust:exact}.fbloc,.fit{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 table.fseances td.l{text-align:left}.fit b small{font-weight:600}
+/* chrono qui continue sur les autres onglets */
+.chband{position:sticky;top:0;z-index:30;display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#14181f;color:#fff;border-radius:14px;padding:8px 12px;margin:0 0 12px}
+.chband .lnk{color:#fff;font-size:20px;font-weight:800;flex:1;text-align:left;background:none;border:0}.chband b{font-variant-numeric:tabular-nums;font-size:26px}
+.chband.rest{background:#15803d}.chband .btn{min-height:40px}
+.nuage{border:2px solid #2563eb;background:#eff6ff}.nuage h3{color:#1d4ed8;margin-top:0}
+.etapes3{margin:0;padding-left:22px}.etapes3 li{margin:6px 0}
+:root[data-theme="dark"] .nuage{background:#121d33}
