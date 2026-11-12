@@ -339,17 +339,43 @@ function vAppel(){if(!P.classe)return pasDeClasse('Appel');const cy=clsCy(P.clas
       <td><select class="in sel" data-appel="${esc(k)}"><option value="">auto</option>${['present','retard','tenue','disp','absent','abj','oubli'].map(c=>`<option value="${c}"${x.manuel&&x.c===c?' selected':''}>${STATUTS[c]}</option>`).join('')}</select></td></tr>`}).join('')}</table></div>
     <p class="small muted">Auto : séance reçue = présent ; « absent » ou « blessé / dispensé » coché par le groupe = absent ou dispensé ; rien = rien reçu. « Hors liste » : nom absent de la liste Pronote, à fusionner depuis sa fiche.</p></section>${groupesAppel(sid)}`}
 /* ----- Séance (classe entière) ----- */
-function vSeance(){if(!P.classe)return pasDeClasse('Séance');const cy=clsCy(P.classe),sid=seanceCourante(cy),s=SBY[sid];
-  return `<section class="card"><h2>${s.n} · ${esc(s.t)}</h2>${stripSeances(cy,sid)}
-  <div class="tw"><table class="tt pt"><tr><th>Élève</th><th>Tenus</th><th>Écart</th><th>Coach a vu</th><th>Effort · charge</th><th>Rôle</th><th>Prochaine fois</th><th>Contrôle prof<br><small>${(B=>!B?'–':B[0]==='c500'?'temps 500 m':'distance (m)')(pronoTarget(s))}</small></th><th>★ AFL2</th><th>★ AFL3</th></tr>${eleves().map(k=>{const e=P.eleves[k];const d=e&&e.seances[sid];const sr=starOf(k,sid);
-    const n0=`<th class="l"><button class="lnk" data-act="fiche" data-k="${esc(k)}">${e?nm(e):esc(nomAff(k))}</button>`;
-    if(!d)return `<tr class="no">${n0}</th><td colspan="9">rien reçu</td></tr>`;if(d.st==='abs')return `<tr class="no">${n0}</th><td colspan="9">absent(e)</td></tr>`;
-    const ct=ctrlDe(k,sid),cv=(P.ctrl&&P.ctrl[k]&&P.ctrl[k][sid])||'';
+/* ----- Séance : tableau du jour (colonnes essentielles ; « Plus de colonnes » garde le reste) ----- */
+let SE_PLUS=(()=>{try{return localStorage.getItem('dfp-seance-plus')==='1'}catch(e){return false}})();
+document.addEventListener('click',ev=>{if(!ev.target.closest('[data-seplus]'))return;SE_PLUS=!SE_PLUS;try{localStorage.setItem('dfp-seance-plus',SE_PLUS?'1':'0')}catch(e){}const y=scrollY;render();scrollTo(0,y)});
+const NP_TXTP=c=>c&&String(c).startsWith('autre:')?String(c).slice(6):({blesse:'blessé, malade',malade:'blessé, malade',temps:'pas le temps',meteo:'pluie',materiel:'matériel',prof:'consigne',autre:'autre'}[c]||c);
+function echOf(s,d){if(!s.blocks.some(b=>['warm','warmT','mwarm'].includes(bk(b)[0])))return null;
+  if(d.mw||s.blocks.some(b=>bk(b)[0]==='mwarm')){const n=(d.mw||[]).length;return {n,N:5,f:null}}
+  const wc=d.wc||[];return {n:WARM_EX.filter((G,gi)=>wc.includes('P'+(gi+1))||G.some(x=>wc.includes(x[0]))).length,N:WARM_EX.length,f:num(d.wfoot)}}
+function poulsN(d){let n=(d.pls||[]).length;(function w(x){for(const k in x){if(k==='pls')continue;const v=x[k];if((k==='fc'||k==='fcr')&&num(v)!=null)n++;else if(v&&typeof v==='object')w(v)}})(d);return n}
+function bilanFait(s,d){if(d.st==='abs')return null;if(d.st==='bl')return filled(getPath(d,'bl.nx'));return (!voit('rpe',s)||filled(getPath(d,'bl.rpe')))&&(filled(getPath(d,'bl.reu'))||filled(getPath(d,'bl.nx')))}
+function vSeance(){if(!P.classe)return pasDeClasse('Séance');const cy=clsCy(P.classe),sid=seanceCourante(cy),s=SBY[sid],plus=SE_PLUS,PT=pronoTarget(s);
+  const K=eleves(),rows=K.map(k=>{const e=P.eleves[k],d=e&&e.seances[sid];return {k,e,d}});
+  const rec=rows.filter(r=>r.d&&r.d.st!=='abs'),cour=rec.filter(r=>!r.d.st);
+  const nb=f=>rec.filter(f).length;
+  const syn=`<p class="synth"><b>${rows.filter(r=>r.d).length}</b> séances reçues sur ${K.length} · bilan fait : <b>${nb(r=>bilanFait(s,r.d))}</b> / ${rec.length}`+
+    (cour.some(r=>echOf(s,r.d))?` · échauffement complet : <b>${cour.filter(r=>{const x=echOf(s,r.d);return x&&x.n>=x.N}).length}</b> / ${cour.length}`:'')+
+    ` · pouls pris : <b>${cour.filter(r=>poulsN(r.d)).length}</b> / ${cour.length} · au moins un exercice passé : <b>${cour.filter(r=>(r.d.np||[]).length).length}</b>`+
+    (plus?` · le coach a coché au moins un critère : <b>${cour.filter(r=>((r.d.bl||{}).cr||[]).some(Boolean)).length}</b> / ${cour.length}`:'')+`</p>`;
+  const nCol=7+(plus?5+(PT?1:0):0);
+  return `<section class="card"><h2>${s.n} · ${esc(s.t)}</h2>${stripSeances(cy,sid)}${syn}
+  <div class="row wrap"><button class="btn sm ghost" data-seplus="1">${plus?'Moins de colonnes':'Plus de colonnes'}</button></div>
+  <div class="tw"><table class="tt pt"><tr><th>Élève</th><th>Projets tenus</th><th>Échauffement</th><th>Pouls</th><th>Passés</th><th>Bilan</th>${plus?`<th>Écart</th><th>Coach a vu</th><th>Effort · charge</th><th>Rôle</th><th>Prochaine fois</th>${PT?`<th>Contrôle prof<br><small>${PT[0]==='c500'?'temps 500 m':'distance (m)'}</small></th>`:''}`:''}<th>★ AFL2 · AFL3</th></tr>${rows.map(({k,e,d})=>{const sr=starOf(k,sid);
+    const mar=e&&isM(runOf(e));
+    const n0=`<th class="l"><button class="lnk" data-act="fiche" data-k="${esc(k)}">${e?nm(e):esc(nomAff(k))}</button>${mar?'<br><small>🚶 marche</small>':''}`;
+    if(!d)return `<tr class="no">${n0}</th><td colspan="${nCol-1}">rien reçu</td></tr>`;if(d.st==='abs')return `<tr class="no">${n0}</th><td colspan="${nCol-1}">absent(e)</td></tr>`;
     const [t,n]=tenR(runOf(e),sid);const bl=d.bl||{};const cr=(bl.cr||[]).filter(Boolean).length;const ec=ecartOf(sid,d),e5=ecartT(sid,d);
-    return `<tr>${n0}${d.st==='bl'?'<br><small>ne court pas</small>':''}${d.cx?'<br><small>coach : '+esc(d.cx.n)+'</small>':''}${d.ad?'<br><small>adapté</small>':''}</th><td><button class="cell" data-act="det" data-k="${esc(k)}" data-v="${sid}">${n?t+'/'+n:'✓'}</button></td><td>${ec!=null?R(ec)+' m':e5!=null?R(e5)+' s':'–'}</td><td>${cr}/3</td><td>${bl.rpe!=null&&bl.rpe!==''?'RPE '+esc(bl.rpe)+' · '+chargeOf(d)+' UA':'–'}</td><td>${esc(bl.role||'–')}</td><td class="l small">${esc(bl.nx||'')}</td>
-     <td>${pronoTarget(s)&&!d.st?`<input class="in w" data-ctrl="${esc(k)}|${sid}" inputmode="decimal" value="${esc(cv)}" placeholder="–" title="${(B=>B[0]==='c500'?'Ton temps mesuré, ex. 2’05':'Ta distance mesurée en m, ex. 650')(pronoTarget(s))}">${ct&&ct.err!=null?`<br><small class="${ct.err<=5?'ok':'ko'}">coach ${ct.T?fT(ct.r):R(ct.r)+' m'} · ±${fc(ct.err)} %</small>`:''}`:'–'}</td>
-     <td><button class="star ${sr.a2?'on':''}" data-act="star" data-k="${esc(k)}" data-v="${sid}|a2">★</button></td><td><button class="star ${sr.a3?'on':''}" data-act="star" data-k="${esc(k)}" data-v="${sid}|a3">★</button></td></tr>`}).join('')}</table></div>
-  <p class="small muted">Touche le nombre de projets tenus pour le détail de la séance. <b>Contrôle prof</b> : mesure toi-même une course par séance (un ou deux élèves suffisent) ; l’écart avec la mesure de son coach sert à l’AFL3 et à repérer les données fausses. ★ = observation du prof pour l’AFL2 / l’AFL3 (reprise dans l’onglet Note).</p></section>`}
+    const ech=d.st?null:echOf(s,d),pn=d.st?0:poulsN(d),np=d.np||[],causes=[...new Set(Object.values(d.npc||{}).map(NP_TXTP))],bf=bilanFait(s,d);
+    const ct=ctrlDe(k,sid),cv=(P.ctrl&&P.ctrl[k]&&P.ctrl[k][sid])||'';
+    return `<tr>${n0}${d.st==='bl'?'<br><small>ne court pas</small>':''}${d.cx?'<br><small>coach : '+esc(d.cx.n)+'</small>':''}${d.ad?'<br><small>adapté</small>':''}</th>
+     <td class="${n?heat(t/n):''}"><button class="cell" data-act="det" data-k="${esc(k)}" data-v="${sid}">${d.st==='bl'?'rôle':n?`<b>${t} / ${n}</b>`:'aucun projet'}</button></td>
+     <td class="${ech?ech.n>=ech.N?'h3':ech.n?'h1':'h0':''}">${ech?`${ech.n} / ${ech.N}${ech.f!=null?`<br><small>footing ${ech.f} m</small>`:''}`:'–'}</td>
+     <td>${d.st?'–':pn?'❤ '+pn:'<span class="muted">aucun</span>'}</td>
+     <td>${np.length?`<b>${np.length}</b>${causes.length?'<br><small>'+causes.map(esc).join(', ')+'</small>':''}`:'–'}</td>
+     <td class="${bf==null?'':bf?'h3':'h0'}">${bf==null?'–':bf?'✓ fait':'✗ pas fait'}</td>
+     ${plus?`<td>${ec!=null?R(ec)+' m':e5!=null?R(e5)+' s':'–'}</td><td>${cr}/${s.crit.length}</td><td>${bl.rpe!=null&&bl.rpe!==''?'RPE '+esc(bl.rpe)+' · '+chargeOf(d)+' UA':'–'}</td><td>${esc(bl.role||'–')}</td><td class="l small">${esc(bl.nx||'')}</td>
+     ${PT?`<td>${!d.st?`<input class="in w" data-ctrl="${esc(k)}|${sid}" inputmode="decimal" value="${esc(cv)}" placeholder="–" title="${PT[0]==='c500'?'Ton temps mesuré, ex. 2’05':'Ta distance mesurée en m, ex. 650'}">${ct&&ct.err!=null?`<br><small class="${ct.err<=5?'ok':'ko'}">coach ${ct.T?fT(ct.r):R(ct.r)+' m'} · ±${fc(ct.err)} %</small>`:''}`:'–'}</td>`:''}`:''}
+     <td class="nowrap"><button class="star ${sr.a2?'on':''}" data-act="star" data-k="${esc(k)}" data-v="${sid}|a2" title="AFL2">★</button> <button class="star ${sr.a3?'on':''}" data-act="star" data-k="${esc(k)}" data-v="${sid}|a3" title="AFL3">★</button></td></tr>`}).join('')}</table></div>
+  <p class="small muted"><b>Projets tenus</b> : touche la case pour le détail de la séance (vert : ¾ et plus, orange : moitié, rouge : moins). <b>Échauffement</b> : parties faites sur ${WARM_EX.length}. <b>Pouls</b> : prises notées dans la séance. <b>Passés</b> : exercices non réalisés et leur cause. ${PT?'<b>Contrôle prof</b> (dans « Plus de colonnes ») : mesure toi-même une course ; l’écart avec la mesure du coach sert à l’AFL3. ':''}★ = ton observation pour l’AFL2 (1re) et l’AFL3 (2e), reprise dans l’onglet Note.</p></section>`}
 /* ----- Élèves : tableau du cycle ----- */
 /* Colonnes « coach, écart, blanche, AFL1 » : repliées par défaut (une ligne par élève), réglage gardé sur l'appareil */
 let EL_PLUS=(()=>{try{return localStorage.getItem('dfp-eleves-plus')==='1'}catch(e){return false}})();
