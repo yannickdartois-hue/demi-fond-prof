@@ -209,7 +209,8 @@ function sessView(){
 const RESULT=['ec2','afl1','afl1T','vup','mnote'];
 const STEP_KEY={al4:'al',ct:'ct',grp:'grp',i36:'i36',i36m:'i36',ra:'ra',ra2:'ra2',m130:'m130',warm:'wc',warmT:'wc',pf:'pf',pfT:'pf',situe:'situe',at:'at',pe:'pe',rel5:'rlt',tours:'tr',t3624:'ts',rt:'rt',i112:'c112',rep:'rep',mine:'mi',real8:'r8',pfin:'pfin',mwarm:'mw',mtech:'mt',mall:'ma',mfr:'mf',mpf:'pf',mpe:'pe'};
 function filled(x){if(x==null||x==='')return false;if(Array.isArray(x))return x.some(filled);if(typeof x==='object')return Object.keys(x).some(k=>filled(x[k]));return true}
-function stepDone(B,d){const [ty,a1]=B;
+const npKey=B=>B[0]+'|'+(B[1]||'');
+function stepDone(B,d){const [ty,a1]=B;if((d.np||[]).includes(npKey(B)))return true;
   if(ty==='t3m')return c3dist(d.t3m)!=null;if(ty==='ann')return num(d.ann)!=null;
   if(ty==='m3')return m3dist(d[a1])!=null;if(ty==='m1000')return parseT(d[a1]&&d[a1].t)!=null;if(ty==='mpause')return filled(d[a1]);
   if(ty==='bilan'){const s=SBY[V.sid];return (!s||!voit('rpe',s)||filled(getPath(d,'bl.rpe')))&&(filled(getPath(d,'bl.reu'))||filled(getPath(d,'bl.nx')))}
