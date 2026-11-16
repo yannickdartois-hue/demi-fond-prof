@@ -16,8 +16,8 @@ const BAR={notes:[0.3,0.6,1,1.3,1.6,2,2.3,2.6,3,3.3,3.6,4,4.3,4.6,5,5.3,5.6,6,6.
 const SESS_S=[
  {id:'s1',n:'S1',t:'Challenges du binôme – ma VMA',goal:'j’annonce mes 4 allures à 1 plot près, notre binôme tient son contrat de tours et je connais ma vitesse sur 3’ (provisoire).',
   crit:['Les 4 allures sont bien différentes','Même vitesse sur les 6 minutes','Parle encore pendant le footing'],blocks:['warm','al4','ct','ann','grp']},
- {id:'s2',n:'S2',t:'Ma vitesse sur 3’, mon 1’30 et des 400 m réguliers',goal:'je mesure ma vitesse sur 3’ et mon 1’30, et mes 400 m sont à 2 s de mon temps prévu.',
-  crit:['Part à l’allure qu’il peut tenir 3 min','2e moitié du 1’30 aussi longue que la 1re','Mêmes temps sur les 4 × 400 m'],blocks:['warm','t3m','ra','m130',['ser','s','4 × 400 m en alternance dans le binôme',[[400,85,'temps de course','E'],[400,85,'temps de course','E'],[400,85,'temps de course','E'],[400,85,'','E']]]]},
+ {id:'s2',n:'S2',t:'Ma VMA (test 36"/24"), mon 1’30 et des 400 m réguliers',goal:'je mesure ma VMA au test 36"/24" et mon 1’30, et mes 400 m sont à 2 s de mon temps prévu.',
+  crit:['Court ses 10 × 36" à fond mais régulier','2e moitié du 1’30 aussi longue que la 1re','Mêmes temps sur les 3 × 400 m'],blocks:['warm','t3624','ra','m130',['ser','s','3 × 400 m en alternance dans le binôme',[[400,85,'temps de course','E'],[400,85,'temps de course','E'],[400,85,'','E']]]]},
  {id:'s3',n:'S3',t:'Le 3’ au plot et le premier projet',goal:'mes 125 m sont à 2 s de mon temps annoncé, mon 3’ est régulier et mon 1’30 arrive à moins de 15 m de mon projet.',
   crit:['Annonce un temps réaliste sur 125 m','Respecte le passage à 1’30 du 3’','Accélère dans les 20 dernières secondes'],blocks:['warm',['ser','s','12 × 125 m à l’allure de ton 1’30, en alternance',Array.from({length:12},(_,i)=>[125,108,i<11?'alternance':''])],['c3','c3','Le 3’ au plot'],['p130','p','1’30 avec projet']]},
  {id:'s4',n:'S4',t:'Tenir son projet fatigué',goal:'mon 1’30, fait 6 min après le 3’, arrive en zone 3 ou 4, et je tiens mes 400 m et 200 m fatigué.',
@@ -62,6 +62,13 @@ const bk=b=>Array.isArray(b)?b:[b];
 const ST_TXT={abs:'absent',bl:'blessé / dispensé'};
 const WHY_TXT={abs:'coach absent',bl:'coach blessé ou dispensé',autre:'autre raison'};
 const DEG_TXT={1:'¼ · élève isolé',2:'⅓ · élève suiveur',3:'⅔ · élève acteur',4:'¾ · moteur / leader'};
+/* Foulée vue par le coach (d'après la fiche coach/juge AFL3 de l'équipe EPS) : critère observable, conseil si « à revoir » */
+const FOULEE=[['Regard loin devant, tête droite','Regarde loin devant, à 20 m, pas tes pieds.'],
+ ['Buste presque droit, gainé','Grandis-toi : buste droit, bassin sous toi, sans te pencher.'],
+ ['Bras à 90°, ils balancent d’avant en arrière','Coudes à 90°, les bras balancent d’avant en arrière, pas devant toi.'],
+ ['Pied posé sous le corps, sans bruit','Pose le pied sous toi, sans bruit : ta foulée doit être légère.'],
+ ['Respiration régulière','Cale ta respiration sur tes pas : par exemple 2 pas pour inspirer, 2 pas pour expirer.'],
+ ['Relâché : épaules basses, mains détendues','Relâche les épaules et les mains : la crispation te coupe le souffle.']];
 const RPE_TXT=['0 · repos','1 · très, très facile','2 · facile','3 · modéré : je parle en phrases','4 · un peu dur','5 · dur : je parle par mots','6 · dur +','7 · très dur','8 · très dur +','9 · presque maximal','10 · maximal : je ne peux plus parler'];
 /* Échauffement (fiche GAREEPS du lycée) : cardio avec les 3 signes, articulaire dans un ordre fixe,
    étirements actifs-dynamiques (C. Geoffroy), renforcement, gammes au choix, passage à l'allure du jour. */

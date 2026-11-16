@@ -28,7 +28,9 @@ function vmaOf(run,sid){
   /* Seconde : « VMA de travail » = VITESSE DU 3’ (distance ÷ 50), référence des cibles d'épreuve.
      Pour les récupérations et les séries marquées 'E' : VMA estimée = vitesse du 3’ × 0,86 (VMA_3). */
   if(cy==='S'){const v6=se.s6&&c3dist(se.s6.c3);if(i>=6&&v6)return v6/50;
-    const v2=se.s2&&c3dist(se.s2.t3m);if(i>=1&&v2)return v2/50;
+    /* v2.0 : S2 = test 36"/24" (VMA mesurée) → vitesse sur 3’ estimée = VMA ÷ 0,86 ; dès la S4, le 3’ couru en S3 la remplace */
+    const vt2=testVma(se.s2&&se.s2.ts),v3=vt2&&se.s3&&c3dist(se.s3.c3);if(i>=3&&v3)return v3/50;if(i>=1&&vt2)return vt2/VMA_3;
+    const v2=se.s2&&c3dist(se.s2.t3m);if(i>=1&&v2)return v2/50;   /* anciens carnets : test de 3’ en S2 */
     const al=se.s1&&se.s1.al;const v1=al&&al[3]?num(al[3].re):null;return v1||num(run.vmaManuelle)||null}
   /* Terminale : test 36"/24" en T2, re-test en T5 (anciens carnets : T6) */
   const vt=testVma(se.t2&&se.t2.ts),v5=testVma(se.t5&&se.t5.rt),v6=testVma(se.t6&&se.t6.rt);
@@ -145,6 +147,10 @@ function chargeOf(d){const bl=d&&d.bl||{};const r=num(bl.rpe);if(r==null)return 
 /* ---- noms ---- */
 const prenomDe=n=>{const w=String(n||'').trim().split(/\s+/);const pre=w.filter(x=>!(x===x.toUpperCase()&&/[A-ZÀ-Ý]/.test(x)));return (pre.length?pre:w).join(' ')};
 const nomDe=n=>{const w=String(n||'').trim().split(/\s+/);const up=w.filter(x=>x===x.toUpperCase()&&/[A-ZÀ-Ý]/.test(x));return up.length?up.join(' '):(w.length>1?w[w.length-1]:'')};
+/* Nom court sans ambiguïté dans une liste (homonymes) : « Alexandre », sinon « Alexandre D. », sinon « Alexandre DUPONT » */
+function nomCourt(full,liste){const p=prenomDe(full),n=nomDe(full),L=(liste||[]).filter(x=>norm(x)!==norm(full));const np=x=>norm(prenomDe(x));
+  if(!L.some(x=>np(x)===norm(p)))return p;const ini=n.charAt(0);if(ini&&!L.some(x=>np(x)===norm(p)&&nomDe(x).charAt(0)===ini))return p+' '+ini+'.';return p+(n?' '+n:'')}
+const nomsGroupe=(rs,cl)=>{const L=(cl&&cl.eleves)||[];return rs.map(r=>r.full&&L.length?nomCourt(r.full,L):r.prenom)};
 function slug(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'').slice(0,24)}
 function nomFichier(classe,eleve,sid,suffixe){const nom=nomDe(eleve),pre=prenomDe(eleve);
   return (slug(classe)||'Classe')+'_'+(slug(nom)+(pre?'_'+slug(pre):'')||'Eleve') /* prénom complet : deux élèves de même nom ne doivent pas donner le même fichier */+'_'+String(sid).toUpperCase()+(suffixe?'_'+suffixe:'')+'.json'}
