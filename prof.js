@@ -45,6 +45,10 @@ function ajouterSeance(r){
   const [k,e]=eleveDe(r.classe,r.eleve,r.cy);const old=e.recu[r.seance];
   if(old&&(old.ts||0)>=(r.ts||0)&&r.ts)return [k,'déjà à jour'];
   e.cy=r.cy||e.cy;if(r.sexe)e.sexe=r.sexe;if(r.pc!==undefined)e.pc=r.pc||'';if(r.vmaManuelle)e.vmaManuelle=r.vmaManuelle;
+  /* v2.1 : même séance reçue depuis un autre groupe (élève inscrit dans 2 carnets) → on le signale */
+  const gk=x=>(x||[]).map(n=>nk(n)).sort().join('+'),ga=e.groupe&&e.groupe[r.seance];
+  if(old&&ga&&ga.length&&r.groupe&&r.groupe.length&&gk(ga)!==gk(r.groupe)){e.conflit=e.conflit||{};e.conflit[r.seance]={a:ga,b:r.groupe,t:Date.now()};
+    journal('⚠ '+r.eleve+' : '+(SBY[r.seance]||{}).n+' reçue depuis 2 groupes ('+ga.join(' · ')+' / '+r.groupe.join(' · ')+'). La dernière reçue est gardée.')}
   e.seances[r.seance]=r.d||{};e.recu[r.seance]={ts:r.ts||0,src:r.src,date:r.date||''};
   if(r.groupe&&r.groupe.length)e.groupe[r.seance]=r.groupe;if(r.coach)e.coach[r.seance]={n:r.coach,rep:!!r.coachRemplacant};
   if(!P.classesL[r.classe])P.classesL[r.classe]={eleves:[],lien:'',cy:r.cy||'S'};
@@ -142,6 +146,7 @@ function statut(k,sid){const o=P.appel[nk(P.classe)+'|'+sid+'|'+k];if(o)return {
 /* alertes pédagogiques de la classe */
 function alertes(c){const cy=clsCy(c),L=sessOf(cy),K=eleves(c);const out=[];
   let last=-1;K.forEach(k=>L.forEach((s,i)=>{if(P.eleves[k]&&P.eleves[k].seances[s.id]&&i>last)last=i}));
+  K.forEach(k=>{const e=P.eleves[k];if(!e||!e.conflit)return;Object.entries(e.conflit).forEach(([sid,x])=>{if(SBY[sid])out.push(['dbl',`${esc(nomAff(k))} : ${SBY[sid].n} reçue depuis 2 groupes (${(x.a||[]).map(esc).join(' · ')} / ${(x.b||[]).map(esc).join(' · ')}). La dernière reçue est gardée : vérifiez avec l’élève. <button class="lnk" data-dblok="${esc(k)}" data-sid="${sid}">C’est réglé</button>`])})});
   if(last>=0){const sid=L[last].id;const miss=K.filter(k=>!(P.eleves[k]&&P.eleves[k].seances[sid])&&!P.appel[nk(c)+'|'+sid+'|'+k]);if(miss.length)out.push(['qr',`Rien reçu en ${L[last].n} : ${miss.map(k=>esc(nomAff(k))).join(', ')}`])}
   K.forEach(k=>{const e=P.eleves[k];if(!e)return;const run=runOf(e);const done=L.filter(s=>hasData(e.seances[s.id])&&!e.seances[s.id].st);
     const l3=done.slice(-3);if(l3.length===3&&l3.every(s=>{const [t,n]=tenR(run,s.id);return n>0&&t===0}))out.push(['ko',`${nm(e)} : aucun projet tenu sur ses 3 dernières séances`]);
@@ -153,7 +158,7 @@ function alertes(c){const cy=clsCy(c),L=sessOf(cy),K=eleves(c);const out=[];
     const rp=done.map(s=>num((e.seances[s.id].bl||{}).rpe)).filter(x=>x!=null);if(rp.length>=3&&rp.slice(-3).every(x=>x>=9))out.push(['rpe',`${nm(e)} : effort ressenti 9-10 sur ses 3 dernières séances`]);
     if(done.length>=3&&!done.some(s=>(e.seances[s.id].bl||{}).reu))out.push(['coach',`${nm(e)} : son coach n’a jamais écrit « Ta réussite » (${done.length} séances)`]);
   });return out}
-const ICA={qr:'📵',ko:'🎯',vma:'✎',abs:'🚫',coach:'⏱',rpe:'💡'};
+const ICA={dbl:'👥',qr:'📵',ko:'🎯',vma:'✎',abs:'🚫',coach:'⏱',rpe:'💡'};
 function vmaDe(e){const L=sessOf(e.cy),r=runOf(e);return isM(r)?vmmOf(r,L[L.length-1].id):vmaOf(r,L[L.length-1].id)}
 const heat=r=>r>=0.75?'h3':r>=0.5?'h2':r>=0.25?'h1':'h0';
 /* signe en plus de la couleur (daltonisme : rouge et vert se confondent pour 8 % des garçons) */
@@ -389,6 +394,7 @@ function vSeance(){if(!P.classe)return pasDeClasse('Séance');const cy=clsCy(P.c
 /* ----- Élèves : tableau du cycle ----- */
 /* Colonnes « coach, écart, blanche, AFL1 » : repliées par défaut (une ligne par élève), réglage gardé sur l'appareil */
 let EL_PLUS=(()=>{try{return localStorage.getItem('dfp-eleves-plus')==='1'}catch(e){return false}})();
+document.addEventListener('click',ev=>{const t=ev.target.closest('[data-dblok]');if(!t)return;const k=t.dataset.dblok,sid=t.dataset.sid;const e=P.eleves[k];if(e&&e.conflit){delete e.conflit[sid];if(!Object.keys(e.conflit).length)delete e.conflit;sauver();render()}});
 document.addEventListener('click',ev=>{if(!ev.target.closest('[data-elplus]'))return;EL_PLUS=!EL_PLUS;try{localStorage.setItem('dfp-eleves-plus',EL_PLUS?'1':'0')}catch(e){}const y=scrollY;render();scrollTo(0,y)});
 function vEleves(){if(!P.classe)return pasDeClasse('Élèves');const cy=clsCy(P.classe),L=sessOf(cy),ev=cy==='T'?['t7','t9']:['s6','s8'];
   const al=alertes(P.classe),plus=EL_PLUS;
