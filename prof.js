@@ -85,11 +85,19 @@ async function lireTexteQR(t){t=String(t||'').trim();
     if(PCH.tag!==m[2])PCH={tag:m[2],n:+m[4],parts:{}};PCH.parts[+m[3]]=m[5];const got=Object.keys(PCH.parts).length;
     if(got<PCH.n)return '… '+got+' / '+PCH.n+' morceaux';let s='';for(let i=1;i<=PCH.n;i++)s+=PCH.parts[i];PCH={tag:null,n:0,parts:{}};t=s}
   if(/^DF[23]/.test(t))return importerAncien(/Ã|Â/.test(t)?decodeURIComponent(escape(t)):t);
-  const q=await DFQR.decoder(t);if(q.t==='K')return deblocage(q);
+  const q=await DFQR.decoder(t);if(q.t==='K')return deblocage(q);if(q.t==='Q')return codeOublie(q);
   return importerQR(q);
 }
 /* code oublié côté élève : la tablette montre la clé du carnet chiffrée pour ma clé ; je la rends par un QR */
 const b64s=u=>{let x='';new Uint8Array(u).forEach(c=>x+=String.fromCharCode(c));return btoa(x)};
+/* v2.2 : code oublié en un scan : la tablette montre son code chiffré pour ma clé ; je l'affiche en grand */
+async function codeOublie(q){if(DEMO)throw new Error('Pas de code oublié en démo.');
+  let raw;try{raw=await ouvrirBrut(q.p)}catch(e){throw new Error('Ce code a été chiffré pour un autre appareil prof (restaure ta sauvegarde).')}
+  const code=new TextDecoder().decode(raw);
+  setTimeout(()=>{const d=document.createElement('div');d.className='qr-plein';
+    d.innerHTML=`<div><h2>Code du groupe</h2><p>${(q.n||[]).map(esc).join(' · ')}${q.c?' · '+esc(q.c):''}</p><p style="font:900 72px/1.1 ui-monospace,monospace;letter-spacing:.2em;margin:18px 0;text-align:center">${esc(code)}</p><p class="small center">Le groupe tape ce code pour ouvrir son carnet.</p><button class="btn pri big" type="button">Fermer</button></div>`;
+    d.querySelector('button').onclick=()=>d.remove();document.body.appendChild(d)},300);
+  journal('Code oublié rendu : '+(q.n||[]).join(', ')+' ('+(q.c||'')+')');return 'Code affiché · '+(q.n||[]).join(', ')}
 async function deblocage(q){if(DEMO)throw new Error('Pas de déverrouillage en démo.');
   let raw;try{raw=await ouvrirBrut(q.p)}catch(e){throw new Error('Ce carnet a été chiffré pour un autre appareil prof (restaure ta sauvegarde).')}
   const txt=await DFQR.encoder({a:'DFE',v:1,t:'U',i:q.i,k:b64s(raw)});
@@ -262,8 +270,10 @@ function qrPlein(titre,sous,parts){const d=document.createElement('div');d.class
   let i=0;const z=d.querySelector('#qpz'),n=d.querySelector('#qpn');z.innerHTML=svgQR(parts[0]);if(parts.length>1)n.textContent='1 / '+parts.length+' · la tablette vise jusqu’au bout';
   const h=parts.length>1?setInterval(()=>{i=(i+1)%parts.length;z.innerHTML=svgQR(parts[i]);n.textContent=(i+1)+' / '+parts.length+' · la tablette vise jusqu’au bout'},1100):null;
   d.querySelector('button').onclick=()=>{if(h)clearInterval(h);d.remove()};document.body.appendChild(d)}
+/* v2.2 : séances reçues, par séance : rangs des élèves dans la liste (« 0.3.12 ») → la tablette affiche « ✓ reçue par le professeur » */
+function recusDe(c,L){const o={};sessOf(L.cy||'S').forEach(s=>{const r=[];(L.eleves||[]).forEach((n,i)=>{const e=P.eleves[cleEleve(c,n)];if(e&&e.recu&&e.recu[s.id])r.push(i)});if(r.length)o[s.id]=r.join('.')});return Object.keys(o).length?o:undefined}
 async function qrDemarrage(c){const L=P.classesL[c],k=await clePublique();if(!L.cc){L.cc=EPSCode.nouvelleCle();sauver()}
-  const txt=await DFQR.encoder({a:'DFE',v:1,t:'C',c,y:L.cy||'S',l:L.eleves,u:L.lien||'',k,cc:L.cc,cj:await EPSCode.cjDuJour('dfp',c,L.cc,seanceCourante(L.cy||'S'))});   /* v2.0 : le QR ouvre toujours la séance en cours (2 h), sans code à taper */
+  const txt=await DFQR.encoder({a:'DFE',v:1,t:'C',c,y:L.cy||'S',l:L.eleves,u:L.lien||'',k,cc:L.cc,cj:await EPSCode.cjDuJour('dfp',c,L.cc,seanceCourante(L.cy||'S')),rc:recusDe(c,L)});   /* v2.0 : le QR ouvre toujours la séance en cours (2 h), sans code à taper */
   const sj=(SBY[seanceCourante(L.cy||'S')]||{}).n||'';
   qrPlein('Classe '+esc(c)+' · demi-fond '+CYC[L.cy||'S'].label,(sj?'Ce QR ouvre la séance <b>'+esc(sj)+'</b> pendant 2 h. ':'')+'Appli élève : « Scanner le QR de la classe » (accueil, Groupe, ou bandeau 🔒 de la séance)',[txt])}
 /* rappel d'archivage : des séances reçues pendant une année scolaire précédente (l'année scolaire commence le 15 août) */
