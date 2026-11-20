@@ -16,7 +16,7 @@ const BAR={notes:[0.3,0.6,1,1.3,1.6,2,2.3,2.6,3,3.3,3.6,4,4.3,4.6,5,5.3,5.6,6,6.
 const SESS_S=[
  {id:'s1',n:'S1',t:'Challenges du binôme – ma VMA',goal:'j’annonce mes 3 allures à 1 plot près, notre binôme tient son contrat de tours et je connais ma vitesse sur 3’ (provisoire).',
   crit:['Les 3 allures sont bien différentes','Même vitesse sur les 6 minutes','Parle encore pendant le footing'],blocks:['warm','al4','ct','ann','grp']},
- {id:'s2',n:'S2',t:'Ma VMA (test 36"/24"), mon 1’30 et des 400 m réguliers',goal:'je mesure ma VMA au test 36"/24" et mon 1’30, et mes 400 m sont à 2 s de mon temps prévu.',
+ {id:'s2',n:'S2',t:'Ma VMA (test 36’’/24’’), mon 1’30 et des 400 m réguliers',goal:'je mesure ma VMA au test 36"/24" et mon 1’30, et mes 400 m sont à 2 s de mon temps prévu.',
   crit:['Court ses 10 × 36" à fond mais régulier','2e moitié du 1’30 aussi longue que la 1re','Mêmes temps sur les 3 × 400 m'],blocks:['warm','t3624','ra','m130',['ser','s','3 × 400 m à 85 % de ma VMA',[[400,85,'temps de course','E'],[400,85,'temps de course','E'],[400,85,'','E']]]]},
  {id:'s3',n:'S3',t:'Le 3’ au plot et le premier projet',goal:'mes 125 m sont à 2 s de mon temps annoncé, mon 3’ est régulier et mon 1’30 arrive à moins de 15 m de mon projet.',
   crit:['Annonce un temps réaliste sur 125 m','Respecte le passage à 1’30 du 3’','Accélère dans les 20 dernières secondes'],blocks:['warm',['ser','s','12 × 125 m à l’allure de ton 1’30, en alternance',Array.from({length:12},(_,i)=>[125,105,i<11?'alternance':''])],['c3','c3','Le 3’ au plot'],['p130','p','1’30 avec projet']]},
@@ -36,9 +36,9 @@ const R5=n=>Array(n).fill([300,110,'5’']);
 const SESS_T=[
  {id:'t1',n:'T1',t:'Parcourir 5 km à 2 et observer',goal:'notre binôme tient son temps visé à 30 s près, je connais mon temps sur 500 m et j’estime mon 1’30.',
   crit:['Relais propres, dans la zone','Tours réguliers','500 m sans départ trop rapide'],blocks:['warm','rel5',['c500','r1','500 m de référence'],'e130']},
- {id:'t2',n:'T2',t:'Alterner des allures et trouver sa VMA',goal:'je tiens chaque allure au tour à 2 s près et je vais au bout du test 36"/24".',
+ {id:'t2',n:'T2',t:'Alterner les allures et trouver sa VMA',goal:'je tiens chaque allure au tour à 2 s près et je vais au bout du test 36"/24".',
   crit:['Temps au tour respectés','Allures de plus en plus rapides','Va au bout du test'],blocks:['warm','tours','t3624']},
- {id:'t3',n:'T3',t:'Travail du 1er 500 – intermittent 36"/36"',goal:'mes temps réalisés sont à 2 s près de mes temps prévus et je tiens mon passage au 250 m.',
+ {id:'t3',n:'T3',t:'Travail du 1er 500 – intermittent 36’’/36’’',goal:'mes temps réalisés sont à 2 s près de mes temps prévus et je tiens mon passage au 250 m.',
   crit:['Passage au 250 m annoncé et tenu','Allure stable sur chaque distance','Plots respectés en 36"/36"'],blocks:['warm',['ser','s','Varier les allures et coacher',[[500,90,'4’'],[400,95,'3’30'],[300,100,'3’'],[200,110,'2’'],[100,120,'2’'],[100,130,'']]],['ser','s2','4 × 250 m à l’allure visée du 500 m, en alternance',[[250,112,'2’'],[250,112,'2’'],[250,112,'2’'],[250,112,'']]],['ra2',70,180],['i36m',[[110,5],[120,5]]]]},
  {id:'t4',n:'T4',t:'Intermittent 1’12 et pyramide',goal:'j’atteins ma coupelle à chaque 1’12 et je tiens les temps de la pyramide.',
   crit:['Coupelle atteinte à chaque 1’12','Récupération respectée','Accélère sur la fin de la pyramide'],blocks:['warm',['i112',95,6],['ra2',70,180],['ser','s','Travail en pyramide',[[125,90,'2’'],[250,95,'2’30'],[375,100,'3’'],[500,112,'5’'],[375,115,'4’'],[250,120,'3’30'],[125,130,'']]]]},
