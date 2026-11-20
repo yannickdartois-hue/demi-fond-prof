@@ -29,7 +29,9 @@ function vmaOf(run,sid){
      Pour les récupérations et les séries marquées 'E' : VMA estimée = vitesse du 3’ × 0,86 (VMA_3). */
   if(cy==='S'){const v6=se.s6&&c3dist(se.s6.c3);if(i>=6&&v6)return v6/50;
     /* v2.0 : S2 = test 36"/24" (VMA mesurée) → vitesse sur 3’ estimée = VMA ÷ 0,86 ; dès la S4, le 3’ couru en S3 la remplace */
-    const vt2=testVma(se.s2&&se.s2.ts),v3=vt2&&se.s3&&c3dist(se.s3.c3);if(i>=3&&v3)return v3/50;if(i>=1&&vt2)return vt2/VMA_3;
+    const vt2=testVma(se.s2&&se.s2.ts),v3=vt2&&se.s3&&c3dist(se.s3.c3);if(i>=3&&v3)return v3/50;
+    /* v5.3 : en S3 (premier 3' couru), vitesse sur 3' estimée = VMA du 36"/24" × 1,07 (un 3' à fond se court vers 105-110 % de la VMA) ; en S2, inchangé */
+    if(i===2&&vt2)return vt2*1.07;if(i>=1&&vt2)return vt2/VMA_3;
     const v2=se.s2&&c3dist(se.s2.t3m);if(i>=1&&v2)return v2/50;   /* anciens carnets : test de 3’ en S2 */
     const al=se.s1&&se.s1.al;const v1=al?(al[3]&&num(al[3].re)!=null?num(al[3].re):(al[2]?num(al[2].re):null)):null;   /* v4.3 : 3 allures, « à fond » = 3e */return v1||num(run.vmaManuelle)||null}
   /* Terminale : test 36"/24" en T2, re-test en T5 (anciens carnets : T6) */
@@ -50,20 +52,23 @@ const pctRow=r=>r[3]==='E'?r[1]*VMA_3:r[1];   /* série en % de la VMA estimée 
    Un projet ne compte que s'il est AMBITIEUX : sinon un élève prudent tiendrait tout sans progresser.
    _v = VMA effective, _ref = dernière distance réalisée au 1'30 (fournies par l'interface). */
 const AMB=0.95;
-function ambition(ty,d,a1){const v=num(d._v),ref=num(d._ref);
-  if(ty==='p130'){const pr=num(d[a1]&&d[a1].proj);if(pr==null)return true;const base=ref||(v?dist(90,v):null);return base==null||pr>=AMB*base}
+/* v5.3 : une seule « allure du 500 m » (112 % VMA) ; 1'30 de Terminale proposé à 110 % VMA (après deux 500 m), de Seconde à 105 % de la vitesse sur 3' ; marche : 1000 m à 92 % de la vitesse sur 3' */
+const P500=1.12,P130T=1.10,P130S=1.05,PM1000=0.92;
+const p130Pct=sid=>cyOfSid(sid)==='T'?P130T:P130S;
+function ambition(ty,d,a1,k130){const v=num(d._v),ref=num(d._ref);
+  if(ty==='p130'){const pr=num(d[a1]&&d[a1].proj);if(pr==null)return true;const base=ref||(v?dist(90,v*(k130||1)):null);return base==null||pr>=AMB*base}
   if(ty==='c3'){const vv=num(d[a1]&&d[a1].v);if(vv==null||!v)return true;return vv>=AMB*dist(180,v)}
   if(ty==='c500'){const pj=parseT(d[a1]&&d[a1].tp);if(pj==null||!v)return true;return pj<=tSec(500,v)/AMB}
   return true}
 function tenus(sid,d){
   if(!d||d.st)return [0,0];let t=0,n=0;const add=ok=>{n++;if(ok)t++};
-  const s=(d._mar&&((d.v5?SBYM:SBYM_OLD)[sid]||SBYM[sid]))||SBY[sid],v=num(d._v),T=cyOfSid(sid)==='T',ad=!!d.ad;          /* ad = pratique adaptée : tolérances élargies */
+  const s=(d._mar&&((d.v5?SBYM:SBYM_OLD)[sid]||SBYM[sid]))||defC(sid,d),v=num(d._v),T=cyOfSid(sid)==='T',ad=!!d.ad;          /* ad = pratique adaptée : tolérances élargies */
   s.blocks.forEach(b=>{const [ty,a1,a2,a3]=bk(b);
     if(ty==='i36'||ty==='i36m')(d.i36||[]).forEach(x=>{if(x)add(x==='P')});
     if(ty==='al4')(d.al||[]).forEach(r=>{const a=num(r&&r.an),e=num(r&&r.re);if(a!=null&&e!=null)add(Math.abs(a-e)<=(ad?2:1))});
     if(ty==='ct')(d.ct||[]).forEach(r=>{const a=num(r&&r.c),e=num(r&&r.r);if(a!=null&&e!=null)add(Math.abs(a-e)<=(ad?1:0))});
     if(ty==='c3'){const c=d[a1];const vv=num(c&&c.v),dd=c3dist(c);if(vv!=null&&dd!=null)add(Math.abs(dd-vv)<=(ad?20:10)&&ambition(ty,d,a1))}
-    if(ty==='p130'){const p=d[a1];const e=num(p&&p.ec);if(e!=null){const z=T?zoneT(e):zoneS(e);add((ad?z[0]>=(T?2:1):(T?z[0]>=3:z[0]>=2))&&ambition(ty,d,a1))}}
+    if(ty==='p130'){const p=d[a1];const e=num(p&&p.ec);if(e!=null){const z=T?zoneT(e):zoneS(e);add((ad?z[0]>=(T?2:1):(T?z[0]>=3:z[0]>=2))&&ambition(ty,d,a1,T?P130T:1))}}
     if(ty==='at')((d.at&&d.at.r)||[]).forEach(x=>{if(x)add(x==='ok')});
     if(ty==='ser')(d[a1]||[]).forEach((r,i)=>{const tr=parseT(r&&r.tr),row=a3[i];if(tr!=null&&row&&v)add(Math.abs(tr-prevu(row[0],pctRow(row),v))<=(ad?4:2))});
     if(ty==='tours')(d.tr||[]).forEach((r,i)=>{const tt=parseT(r&&r.t),vv=num(r&&r.v)||[8,10,12,14][i];if(tt!=null&&vv)add(Math.abs(tt-tSec(200,vv))<=(ad?4:2))});
@@ -80,7 +85,7 @@ function tenus(sid,d){
   return [t,n];
 }
 /* écart moyen entre prévu et réalisé : le vrai indicateur de « gérer son allure » (plus bas = mieux) */
-function ecartOf(sid,d){if(!d||d.st)return null;const s=SBY[sid];const m=[];
+function ecartOf(sid,d){if(!d||d.st)return null;const s=defC(sid,d);const m=[];
   s.blocks.forEach(b=>{const [ty,a1]=bk(b);
     if(ty==='p130'){const e=num(d[a1]&&d[a1].ec);if(e!=null)m.push(Math.abs(e))}
     if(ty==='c3'){const c=d[a1];const vv=num(c&&c.v),dd=c3dist(c);if(vv!=null&&dd!=null)m.push(Math.abs(dd-vv)/2)}   /* 3' ramené à l'échelle du 1'30 */
@@ -107,8 +112,10 @@ function afl1T(run,d){                                  /* Terminale (/12) : per
 }
 /* ---- PARCOURS MARCHE ---- */
 const isM=run=>!!(run&&run.pc==='m');
+/* v5.3 : T5 déjà remplie avec son 1'30 (avant le déplacement du 1'30 en T6) → ancienne T5, pour ne rien perdre */
+const defC=(sid,d)=>sid==='t5'&&d&&d.p&&Object.keys(d.p).length?T5_OLD:SBY[sid];
 /* v5.0 : séance marche déjà commencée avant la v5 (pas de d.v5) → anciennes séances ; sinon les nouvelles (d.v5 posé dès l'ouverture) */
-const sessFor=(run,sid)=>{if(!isM(run))return SBY[sid];const d=run.seances&&run.seances[sid];
+const sessFor=(run,sid)=>{if(!isM(run))return defC(sid,run.seances&&run.seances[sid]);const d=run.seances&&run.seances[sid];
   if(d&&!d.v5){if(Object.keys(d).some(k=>k!=='_v'&&k!=='v5'))return SBYM_OLD[sid]||SBYM[sid];d.v5=1}return SBYM[sid]};
 function m3dist(c){if(!c)return null;const t=num(c.t),p=num(c.pl);if(t==null&&p==null)return null;return (t||0)*200+(p||0)}
 /* vitesse de marche (km/h) = distance du dernier 3’ « à fond » ÷ 50 */

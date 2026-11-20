@@ -2,7 +2,8 @@
 window.EPS_AIDE={appli:'Demi-fond · Outil prof',bouton:false,pied:'Toutes les données restent sur cet appareil : pensez à la sauvegarde après chaque import.',publics:[
 {id:'prof',titre:'Professeur',chapitres:[
 {t:'Séances revues (novembre 2026)',html:`<ul>
-<li><b>Seconde</b> : plus de 36"/36". S2 = test de 3’ à fond (vitesse sur 3’ = distance ÷ 50 pour les cibles d’épreuve ; VMA estimée = ÷ 58 pour les récupérations et les séries notées « % de ta VMA »). Séries tirées de la banque : 4 × 400 m (S2), 12 × 125 m (S3), 2 × (400 + 200 m) (S4), 6 × 300 m (S5), répétition générale 3’ / 10’ / 1’30 (S7).</li>
+<li><b>Seconde</b> : pas de 36"/36". S2 = test VMA 36"/24" ; la vitesse sur 3’ (distance ÷ 50) règle les cibles d’épreuve : estimée en S3 (VMA × 1,07), puis mesurée sur le 3’ de S3 et de S6. Les récupérations et les séries notées « % de ta VMA » utilisent la VMA estimée (vitesse sur 3’ × 0,86). Séries : 3 × 400 m à 85 % (S2), 12 × 125 m à l’allure du 1’30 (S3), 2 × (400 + 200 m) (S4), 6 × 300 m (S5), répétition générale 3’ / 10’ / 1’30 (S7).</li>
+<li><b>Allures de Terminale</b> : une seule « allure du 500 m » à 112 % de la VMA (T3, T5, T8, objectif d’épreuve) ; projet du 1’30 proposé à 110 % de la VMA. Le 1’30 avec projet est couru en T6, après les deux 500 m, comme à l’épreuve.</li>
 <li><b>Terminale</b> : T1 avec 1’30 estimé, T3 avec 4 × 250 m à l’allure du 500 m et 5 + 5 × 36"/36", T4 en version complète (6 × 1’12 à 95 %, pyramide 125 → 500 → 125 m), re-test en T5 avec 3 × (300 + 200 m), T6 avec 2 × 500 m et 10’ de récupération, T8 encadrée (≤ 110 % VMA, ≤ 1500 m rapides).</li>
 <li><b>Échauffement</b> illustré à chaque séance et <b>distance de la séance</b> dans le détail et l’export « Séances ».</li>
 </ul>`},

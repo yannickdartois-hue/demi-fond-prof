@@ -7,7 +7,7 @@
 const AVT=(n,b,c)=>window.EPSAvatar?EPSAvatar(n,b,c):'';
 
 'use strict';
-const APP_VERSION='v3.0 · 20/11/2026';
+const APP_VERSION='v3.1 · 20/11/2026';
 const CLEP='dfp-v1';
 const $=s=>document.querySelector(s);
 const nk=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
@@ -478,7 +478,7 @@ function detail(k,sid){const e=P.eleves[k];const d=e.seances[sid];const run=runO
   if(d.t3m)L.push(['Test 3’',(x=>x?fM(x)+' · vitesse '+fV(x/50)+' km/h · VMA estimée '+fV(x/50*VMA_3)+' km/h':'–')(c3dist(d.t3m))]);if(d.ann!=null)L.push(['Les anneaux 6’',num(d.ann)*20+' m']);
   if(d.e130)L.push(['1’30 estimé (45" / 1’30)',(d.e130.e45||'·')+' / '+(d.e130.e90||'·')+' m annoncés → '+(d.e130.r45||'·')+' / '+(d.e130.r90||'·')+' m']);
   if(d.i36)L.push(['36"/36"',d.i36.map(x=>x||'·').join(' ')]);
-  if(d.al)L.push(['4 allures',mini(['Allure','Annoncé','Réalisé','Pouls'],d.al.map((r,i)=>r?[String(i+1),f(r.an),f(r.re)+(num(r.an)!=null&&num(r.re)!=null?(Math.abs(num(r.re)-num(r.an))<=1?' <b class="ok">✓</b>':' <b class="ko">✗</b>'):''),num(r.fc)!=null?'♥ '+esc(r.fc)+(num(r.fcr)!=null?' → '+esc(r.fcr):''):'–']:null).filter(Boolean))+'<small class="muted">en plots ; ✓ = à 1 plot près</small>']);
+  if(d.al)L.push(['Allures',mini(['Allure','Annoncé','Réalisé','Pouls'],d.al.map((r,i)=>r?[String(i+1),f(r.an),f(r.re)+(num(r.an)!=null&&num(r.re)!=null?(Math.abs(num(r.re)-num(r.an))<=1?' <b class="ok">✓</b>':' <b class="ko">✗</b>'):''),num(r.fc)!=null?'♥ '+esc(r.fc)+(num(r.fcr)!=null?' → '+esc(r.fcr):''):'–']:null).filter(Boolean))+'<small class="muted">en plots ; ✓ = à 1 plot près</small>']);
   if(d.ct)L.push(['Contrat de tours',mini(['Manche','Contrat','Réalisé'],d.ct.map((r,i)=>r?[String(i+1),f(r.c),f(r.r)+(num(r.c)!=null&&num(r.r)!=null?(num(r.r)>=num(r.c)?' <b class="ok">✓</b>':' <b class="ko">✗</b>'):'')]:null).filter(Boolean))]);
   if(d.ra)L.push(['Récup active',f(d.ra)+' grands plots']);if(d.ra2)L.push(['Récup active',f(d.ra2)+' m']);
   if(d.m130)L.push(['1’30 mesuré',fM(tp(d.m130.t,d.m130.p))]);
@@ -500,7 +500,7 @@ function detail(k,sid){const e=P.eleves[k];const d=e.seances[sid];const run=runO
    [['en','Entre deux courses'],['en2','Entre C2 et C3']].forEach(([k,t])=>{const e=d[k];if(e&&typeof e==='object'){const x=['reg','ress','rec'].map(q=>EN[q][e[q]]).filter(Boolean);if(x.length)L.push([t,esc(x.join(' · '))])}})}
   if(d.wc||d.warm||d.wfoot){const wc=d.wc||[],ex=wc.filter(c=>!/^P\d$/.test(c));L.push(['Échauffement',WARM_PART.map(([pk,lab],gi)=>{const G=WARM_EX[gi]||[],ok=wc.includes(pk)||G.some(x=>wc.includes(x[0]));return (ok?'<b class="ok">✓</b> ':'<b class="ko">✗</b> ')+esc(lab.replace(/ fai(t|ts|te|tes)$/,''))+(gi===0&&num(d.wfoot)!=null?' · footing '+num(d.wfoot)+' m':'')}).join('<br>')+(d.wx?'<br>'+esc(d.wx):'')+(d.warm?'<br>'+d.warm.filter(Boolean).map(esc).join(' / '):'')+(ex.length?`<details><summary class="small">Voir les exercices cochés (${ex.length})</summary><small>${ex.map(c=>esc(WARM_NAME[c]||c)).join(', ')}</small></details>`:'')+(d.rc?'<br>Récup : '+esc(d.rc)+(d.rc2?' / '+esc(d.rc2):''):'')])}
   if((d.pls||[]).length)L.push(['❤ Pouls pris',d.pls.map(x=>{const h=new Date(x.h);return (isNaN(h)?'':h.getHours()+' h '+String(h.getMinutes()).padStart(2,'0')+' · ')+'<b>'+esc(x.fc)+'</b> /min'+(num(x.fcr)!=null?' → '+esc(x.fcr)+' après 1 min':'')+(x.et?' <small class="muted">(étape '+esc(x.et)+')</small>':'')}).join('<br>')]);
-  if((d.np||[]).length){const C=d.npc||{};const NPL={ann:'Les anneaux 6’',al4:'4 allures',al:'4 allures',ra:'Récupération active',ra2:'Récupération active',ct:'Contrat de tours',warm:'Échauffement',warmT:'Échauffement',rel:'Relais'},nomB=k=>{const b=s.blocks.map(bk).find(b=>b[1]===k||b[0]===k);return NPL[k]||(b&&typeof b[2]==='string'?b[2]:k)};L.push(['⏭ Exercices passés',d.np.map(k=>esc(nomB(k))+(C[k]?' · '+esc(NP_TXTP(C[k])):'')).join('<br>')])}
+  if((d.np||[]).length){const C=d.npc||{};const NPL={ann:'Les anneaux 6’',al4:'Allures',al:'Allures',ra:'Récupération active',ra2:'Récupération active',ct:'Contrat de tours',warm:'Échauffement',warmT:'Échauffement',rel:'Relais'},nomB=k=>{const b=s.blocks.map(bk).find(b=>b[1]===k||b[0]===k);return NPL[k]||(b&&typeof b[2]==='string'?b[2]:k)};L.push(['⏭ Exercices passés',d.np.map(k=>esc(nomB(k))+(C[k]?' · '+esc(NP_TXTP(C[k])):'')).join('<br>')])}
   if(d.aj)L.push(['Ajustement',esc(d.aj)]);if(d.pe)L.push(['Projets évaluation','3’ '+f(d.pe.v3)+' m · 1’30 '+f(d.pe.p)+' m · '+esc(d.pe.why||'')]);
   if(d.ad)L.unshift(['Présence','pratique adaptée (tolérances élargies)']);if(d.st)L.unshift(['Présence',ST_TXT[d.st]+(d.mot?' · '+esc(d.mot):'')]);
   if(d.vj)L.unshift(['VMA du jour','⚠ modifiée par l’élève : '+esc(d.vj)+' km/h (mesurée : '+fV(vma)+')']);if(d.cx)L.unshift(['Coach remplaçant',esc(d.cx.n)+' · '+esc(WHY_TXT[d.cx.why]||'')]);
