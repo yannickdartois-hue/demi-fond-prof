@@ -45,6 +45,7 @@ window.EPS_AIDE={appli:'Demi-fond · Outil prof',bouton:false,pied:'Toutes les d
 <li><b>AFL1 /12</b> : calculé depuis l’épreuve (S8 ou T9) et les barèmes du lycée.</li>
 <li><b>AFL2</b> (suggestion) : 2 points sur les projets tenus, le reste sur la préparation (échauffement complet aux épreuves, projets ambitieux, régulation écrite).</li>
 <li><b>AFL3</b> (suggestion) : fiabilité du coach d’après vos contrôles, justesse de ses pronostics, avis du coureur. ★ : +0,5 à partir de deux.</li>
+<li><b>Coaching</b> (colonne Coach) : niveau atteint (1 je constate · 2 je le prouve par un chiffre · 3 je fixe un objectif mesurable), objectifs tenus sur ceux vérifiés à la séance suivante, objectifs repris comme projet par le coureur.</li>
 <li>Touchez « ← » pour reprendre une suggestion, ou écrivez votre note. Export CSV dans Exporter.</li></ul>
 <p class="astuce">Épreuve officielle chronométrée par vous (départ commun, temps glissés sur les élèves, barèmes BO 2021) : bouton <b>Ouvrir CCF demi-fond — prof</b> dans Chrono et dans Note (Terminale).</p>`},
 {t:'Sauvegarder, changer d’appareil, fin d’année',html:`<ul><li>Recevoir → <span class="bouton">Exporter une sauvegarde</span> : rangez le fichier dans votre espace personnel. « Restaurer » sur l’autre appareil.</li>

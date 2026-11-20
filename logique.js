@@ -31,7 +31,7 @@ function vmaOf(run,sid){
     /* v2.0 : S2 = test 36"/24" (VMA mesurée) → vitesse sur 3’ estimée = VMA ÷ 0,86 ; dès la S4, le 3’ couru en S3 la remplace */
     const vt2=testVma(se.s2&&se.s2.ts),v3=vt2&&se.s3&&c3dist(se.s3.c3);if(i>=3&&v3)return v3/50;if(i>=1&&vt2)return vt2/VMA_3;
     const v2=se.s2&&c3dist(se.s2.t3m);if(i>=1&&v2)return v2/50;   /* anciens carnets : test de 3’ en S2 */
-    const al=se.s1&&se.s1.al;const v1=al&&al[3]?num(al[3].re):null;return v1||num(run.vmaManuelle)||null}
+    const al=se.s1&&se.s1.al;const v1=al?(al[3]&&num(al[3].re)!=null?num(al[3].re):(al[2]?num(al[2].re):null)):null;   /* v4.3 : 3 allures, « à fond » = 3e */return v1||num(run.vmaManuelle)||null}
   /* Terminale : test 36"/24" en T2, re-test en T5 (anciens carnets : T6) */
   const vt=testVma(se.t2&&se.t2.ts),v5=testVma(se.t5&&se.t5.rt),v6=testVma(se.t6&&se.t6.rt);
   if(i>=4&&v5)return v5;if(i>=5&&v6)return v6;return vt||num(run.vmaManuelle)||null;
@@ -57,7 +57,7 @@ function ambition(ty,d,a1){const v=num(d._v),ref=num(d._ref);
   return true}
 function tenus(sid,d){
   if(!d||d.st)return [0,0];let t=0,n=0;const add=ok=>{n++;if(ok)t++};
-  const s=(d._mar&&SBYM[sid])||SBY[sid],v=num(d._v),T=cyOfSid(sid)==='T',ad=!!d.ad;          /* ad = pratique adaptée : tolérances élargies */
+  const s=(d._mar&&((d.v5?SBYM:SBYM_OLD)[sid]||SBYM[sid]))||SBY[sid],v=num(d._v),T=cyOfSid(sid)==='T',ad=!!d.ad;          /* ad = pratique adaptée : tolérances élargies */
   s.blocks.forEach(b=>{const [ty,a1,a2,a3]=bk(b);
     if(ty==='i36'||ty==='i36m')(d.i36||[]).forEach(x=>{if(x)add(x==='P')});
     if(ty==='al4')(d.al||[]).forEach(r=>{const a=num(r&&r.an),e=num(r&&r.re);if(a!=null&&e!=null)add(Math.abs(a-e)<=(ad?2:1))});
@@ -73,6 +73,7 @@ function tenus(sid,d){
     if(ty==='m3'&&a1!=='mx'){const c=d[a1];const vv=num(c&&c.v),dd=m3dist(c);if(vv!=null&&dd!=null)add(Math.abs(dd-vv)<=10)}
     if(ty==='m1000'){const c=d[a1]||{};const tt=parseT(c.t),pj=parseT(c.tp);if(tt!=null&&pj!=null)add(Math.abs(tt-pj)<=10)}
     if(ty==='mall')(d.ma||[]).forEach((x,i)=>{const r=num(x);if(r!=null&&v)add(Math.abs(r-dist(120,v*[70,80,90][i]/100))<=10)});
+    if(ty==='mall2')(d.ma2||[]).forEach((x,i)=>{const r=num(x);if(r!=null&&v)add(Math.abs(r-dist(180,v*[80,90,95][i]/100))<=10)});
     if(ty==='mfr')(d.mf||[]).forEach(r=>{const a=num(r&&r.v),e=num(r&&r.r);if(a!=null&&e!=null)add(Math.abs(a-e)<=10)});
     if(ty==='real8')(d.r8||[]).forEach(r=>{const p=parseT(r&&r.p),x=parseT(r&&r.r);if(p!=null&&x!=null)add(Math.abs(p-x)<=(ad?4:2))});
   });
@@ -106,7 +107,9 @@ function afl1T(run,d){                                  /* Terminale (/12) : per
 }
 /* ---- PARCOURS MARCHE ---- */
 const isM=run=>!!(run&&run.pc==='m');
-const sessFor=(run,sid)=>(isM(run)&&SBYM[sid])||SBY[sid];
+/* v5.0 : séance marche déjà commencée avant la v5 (pas de d.v5) → anciennes séances ; sinon les nouvelles (d.v5 posé dès l'ouverture) */
+const sessFor=(run,sid)=>{if(!isM(run))return SBY[sid];const d=run.seances&&run.seances[sid];
+  if(d&&!d.v5){if(Object.keys(d).some(k=>k!=='_v'&&k!=='v5'))return SBYM_OLD[sid]||SBYM[sid];d.v5=1}return SBYM[sid]};
 function m3dist(c){if(!c)return null;const t=num(c.t),p=num(c.pl);if(t==null&&p==null)return null;return (t||0)*200+(p||0)}
 /* vitesse de marche (km/h) = distance du dernier 3’ « à fond » ÷ 50 */
 function vmmOf(run,sid){const L=sessOf(cyOfSid(sid)),i=L.findIndex(s=>s.id===sid);for(let k=i;k>=0;k--){const x=run.seances&&run.seances[L[k].id];const dd=x&&m3dist(x.mx);if(dd)return dd/50}return null}
@@ -190,6 +193,60 @@ function distSeance(run,sid){const d=run.seances&&run.seances[sid];if(!d||d.st)r
     else if(ty==='m3')plus(m3dist(d[a1]));
     else if(ty==='m1000'){if(parseT(d[a1]&&d[a1].t)!=null)m+=1000}
     else if(ty==='mall')(d.ma||[]).forEach(plus);
+    else if(ty==='mall2')(d.ma2||[]).forEach(plus);
     else if(ty==='mfr')(d.mf||[]).forEach(r=>plus(r&&r.r));
   });
   return R(m)}
+
+/* =====================================================================
+   v5.0 · BILAN DU COACH : chiffres lus dans le carnet, objectifs vérifiés à la séance suivante
+   ===================================================================== */
+const sg=x=>(x>=0?'+':'−')+R(Math.abs(x));
+function chiffres(s,d,v){const L=[];if(!s||!d)return L;const nb=[];
+  const add=(k,txt,sig,w)=>L.push({k,txt,sig,w:w||0});
+  s.blocks.forEach(b=>{const [ty,a1,a2,a3]=bk(b);
+    if(ty==='ser'&&v){const df=[];(d[a1]||[]).forEach((r,i)=>{const t=parseT(r&&r.tr),row=a3[i];if(t!=null&&row)df.push(t-prevu(row[0],pctRow(row),v))});
+      if(df.length>=2){const m=df.reduce((a,x)=>a+x,0)/df.length,sp=Math.max(...df)-Math.min(...df);
+        add(a1+'m',`Écart moyen aux temps prévus : ${sg(m)} s`,m>2?'lent':m<-2?'vite':'ok',Math.abs(m));
+        if(sp>4)add(a1+'s',`Écart entre la répétition la plus juste et la moins juste : ${R(sp)} s`,'irreg',sp/2)}}
+    if(ty==='c3'){const c=d[a1];const rg=c3reg(c),dd=c3dist(c),an=num(c&&c.v);
+      if(rg!=null)add(a1+'r',`2e moitié du 3’ par rapport à la 1re : ${sg(rg)} m`,rg<-10?'fin':rg>10?'prudent':'ok',Math.abs(rg)/5);
+      if(dd!=null&&an!=null)add(a1+'a',`Écart du 3’ à l’annonce : ${sg(dd-an)} m`,dd<an-10?'projHaut':dd>an+10?'projBas':'ok',Math.abs(dd-an)/5)}
+    if(ty==='p130'){const e=num(d[a1]&&d[a1].ec);if(e!=null)add(a1,`Écart du 1’30 au projet : ${sg(e)} m`,e<-5?'projHaut':e>5?'projBas':'ok',Math.abs(e)/2)}
+    if(ty==='c500'){const c=d[a1]||{};const t=parseT(c.t),ps=parseT(c.ps),pj=parseT(c.tp);if(t!=null)nb.push(t);
+      if(t!=null&&ps!=null){const x=t-2*ps;add(a1+'h',`${esc0(a2)} : 2e 250 m moins 1er ${sg(x)} s`,x>2?'fin':x<-2?'prudent':'ok',Math.abs(x))}
+      if(t!=null&&pj!=null)add(a1+'p',`${esc0(a2)} : écart au temps visé ${sg(t-pj)} s`,t-pj>2?'lent':t-pj<-2?'vite':'ok',Math.abs(t-pj))}
+    if(ty==='i36'||ty==='i36m'){const r=d.i36||[];const nT=r.filter(x=>x==='T').length,nL=r.filter(x=>x==='L').length,n=r.filter(Boolean).length;
+      if(n)add('i36',`Plots : ${nT} trop tôt, ${nL} trop tard sur ${n}`,nT>=2&&nT>=nL?'plotTot':nL>=2?'plotTard':'ok',(nT+nL)/1.5)}
+    if(ty==='i112'&&v){const r=(d.c112||[]).map(num).filter(x=>x!=null);if(r.length){const ok=r.filter(c=>Math.abs(c-v*a1/100)<=1).length;add('i112',`Coupelles atteintes : ${ok} / ${r.length}`,ok<r.length-1?'coupelle':'ok',(r.length-ok))}}
+    if(ty==='m3'&&a1!=='mx'){const c=d[a1];const dd=m3dist(c),pr=num(c&&c.v);if(dd!=null&&pr!=null)add(a1,`Écart du 3’ au projet : ${sg(dd-pr)} m`,dd<pr-10?'projHaut':dd>pr+10?'projBas':'ok',Math.abs(dd-pr)/5)}
+    if(ty==='m1000'){const c=d[a1]||{};const t=parseT(c.t),pj=parseT(c.tp),ps=parseT(c.ps);if(t!=null)nb.push(t);
+      if(t!=null&&pj!=null)add(a1+'p',`${esc0(a2)} : écart au temps visé ${sg(t-pj)} s`,t-pj>10?'lent':t-pj<-10?'prudent':'ok',Math.abs(t-pj)/4);
+      if(t!=null&&ps!=null){const x=t-2*ps;add(a1+'h',`${esc0(a2)} : 2e 500 m moins 1er ${sg(x)} s`,x>10?'fin':'ok',Math.abs(x)/4)}}
+    if(ty==='mfr'){const e=(d.mf||[]).map(r=>{const a=num(r&&r.v),x=num(r&&r.r);return a!=null&&x!=null?x-a:null}).filter(x=>x!=null);
+      if(e.length){const m=e.reduce((a,x)=>a+Math.abs(x),0)/e.length;add('mf',`Écart moyen aux annonces : ${R(m)} m`,m>10?'irreg':'ok',m/5)}}
+    if(ty==='mall2'&&v){const e=(d.ma2||[]).map((x,i)=>{const r=num(x);return r!=null?r-dist(180,v*[80,90,95][i]/100):null}).filter(x=>x!=null);
+      if(e.length){const m=e.reduce((a,x)=>a+Math.abs(x),0)/e.length;add('ma2',`Écart moyen aux 3 allures : ${R(m)} m`,m>10?'irreg':'ok',m/5)}}
+    if(ty==='real8'){const e=(d.r8||[]).map(r=>{const p=parseT(r&&r.p),x=parseT(r&&r.r);return p!=null&&x!=null?Math.abs(x-p):null}).filter(x=>x!=null);
+      if(e.length){const m=e.reduce((a,x)=>a+x,0)/e.length;add('r8',`Écart moyen sur les allures de sa séance : ${R(m)} s`,m>2?'irreg':'ok',m)}}
+  });
+  if(nb.length===2){const x=nb[1]-nb[0];add('nb',`2e course moins 1re : ${sg(x)} s`,x>(s.blocks.some(b=>bk(b)[0]==='m1000')?15:3)?'fin':'ok',Math.abs(x)/2)}
+  return L.sort((a,b)=>b.w-a.w)}
+const esc0=t=>String(t||'').replace(/^C\d · /,'');
+/* valeur réalisée pour un objectif, lue dans la séance suivante */
+function objReal(k,dn){if(!dn||dn.st)return null;const T=x=>parseT(x);
+  if(k==='p250')return T(dn.e1&&dn.e1.ps);
+  if(k==='ec2'){const a=T(dn.e1&&dn.e1.t),b=T(dn.e2&&dn.e2.t);return a!=null&&b!=null?b-a:null}
+  if(k==='p130')return p130real(dn.p);
+  if(k==='r8'){const e=(dn.r8||[]).map(r=>{const p=T(r&&r.p),x=T(r&&r.r);return p!=null&&x!=null?Math.abs(x-p):null}).filter(x=>x!=null);return e.length?R(e.reduce((a,x)=>a+x,0)/e.length*10)/10:null}
+  if(k==='mp500')return T(dn.w1&&dn.w1.ps);
+  if(k==='mec2'){const a=T(dn.w1&&dn.w1.t),b=T(dn.w2&&dn.w2.t);return a!=null&&b!=null?b-a:null}
+  if(k==='m3p')return m3dist(dn.q);
+  if(k==='m1k')return T(dn.k1&&dn.k1.t);return null}
+const nextSid=sid=>{const L=sessOf(cyOfSid(sid)),i=L.findIndex(s=>s.id===sid);return i>=0&&L[i+1]?L[i+1].id:null};
+const prevSid=sid=>{const L=sessOf(cyOfSid(sid)),i=L.findIndex(s=>s.id===sid);return i>0?L[i-1].id:null};
+/* objectif fixé par le coach à la séance sid → tenu à la séance suivante ? */
+function objTenu(run,sid){const d=run.seances&&run.seances[sid],o=d&&d.bl&&d.bl.obj;if(!o||!o.k||o.v==null||o.v==='')return null;const D=OBJ_T[o.k];if(!D)return null;
+  const tv=D.time?parseT(o.v):num(o.v),ns=nextSid(sid),dn=ns&&run.seances&&run.seances[ns];const r=objReal(o.k,dn);
+  if(tv==null)return null;if(r==null)return {k:o.k,v:tv,r:null,ok:null,pris:dn&&dn.obp||null};
+  return {k:o.k,v:tv,r,ok:D.max?r<=tv:Math.abs(r-tv)<=D.tol,pris:dn&&dn.obp||null}}

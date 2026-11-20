@@ -7,7 +7,7 @@
 const AVT=(n,b,c)=>window.EPSAvatar?EPSAvatar(n,b,c):'';
 
 'use strict';
-const APP_VERSION='v2.3 · 20/11/2026';
+const APP_VERSION='v3.0 · 20/11/2026';
 const CLEP='dfp-v1';
 const $=s=>document.querySelector(s);
 const nk=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
@@ -139,12 +139,15 @@ function ctrlDe(k,sid){const v=P.ctrl&&P.ctrl[k]&&P.ctrl[k][sid];const e=P.eleve
   const B=pronoTarget(SBY[sid]);if(!B)return null;const T=B[0]==='c500';const x=T?parseT(v):num(v);const r=pronoReal(B,d);if(x==null||!x||r==null)return {x,r:null};
   return {x,r,err:R(Math.abs(x-r)/x*1000)/10,T}}
 const moy=a=>a.length?R(a.reduce((s,x)=>s+x,0)/a.length*10)/10:null;
-function coachDe(k){const e=P.eleves[k];if(!e)return null;const me=nk(e.full),pr=nk(e.prenom);let yes=0,tot=0,n=0;const er=[],fi=[];
+function coachDe(k){const e=P.eleves[k];if(!e)return null;const me=nk(e.full),pr=nk(e.prenom);let yes=0,tot=0,n=0,niv=0,of=0,ot=0,ov=0,opr=0;const er=[],fi=[];
   Object.entries(P.eleves).forEach(([ko,o])=>{if(o===e||o.classe!==e.classe)return;sessOf(o.cy).forEach(s=>{const c=o.coach[s.id];const d=o.seances[s.id];if(!c||!d||d.st)return;
     const cn=nk(c.n);if(cn!==me&&!(c.rep&&cn.startsWith(pr)))return;n++;const bl=d.bl||{};if(bl.aide==='1'||bl.aide==='0'){tot++;if(bl.aide==='1')yes++}const x=pronoErr(s,d);if(x!=null)er.push(x);
-    const ct=ctrlDe(ko,s.id);if(ct&&ct.err!=null)fi.push(ct.err)})});
-  return {n,yes,tot,err:er.length?R(moy(er)):null,fiab:moy(fi),nf:fi.length}}
-function coachTxt(k){const c=coachDe(k);if(!c||!c.n)return '–';return [c.nf?`contrôle ±${fc(c.fiab)} %`:'',c.err!=null?`pronostic ±${c.err} %`:'',c.tot?`aide ${c.yes}/${c.tot}`:''].filter(Boolean).join('<br><small>')+(c.nf||c.err!=null||c.tot?'':c.n+' séance'+(c.n>1?'s':''))}
+    const ct=ctrlDe(ko,s.id);if(ct&&ct.err!=null)fi.push(ct.err);
+    /* v3.0 : coaching — niveau atteint, objectifs fixés / tenus / repris comme projet */
+    if(bl.cr&&filled(bl.cr)||bl.con||bl.pfc||bl.ret)niv=Math.max(niv,NIV_COACH[s.id]||1);
+    const ob=objTenu(runOf(o),s.id);if(ob){of++;if(ob.ok)ot++;if(ob.ok!=null)ov++;if(ob.pris==='oui')opr++}})});
+  return {n,yes,tot,err:er.length?R(moy(er)):null,fiab:moy(fi),nf:fi.length,niv,of,ot,ov,opr}}
+function coachTxt(k){const c=coachDe(k);if(!c||!c.n)return '–';const L=[c.niv?`niveau ${c.niv}`:'',c.nf?`contrôle ±${fc(c.fiab)} %`:'',c.err!=null?`pronostic ±${c.err} %`:'',c.tot?`aide ${c.yes}/${c.tot}`:'',c.of?`objectifs ${c.ot}/${c.ov||c.of} tenus${c.opr?` · ${c.opr} repris`:''}`:''].filter(Boolean);return L.length?L.join('<br><small>'):c.n+' séance'+(c.n>1?'s':'')}
 /* statut d'un élève à une séance (appel) */
 const STATUTS={present:'Présent',disp:'Dispensé / blessé',absent:'Absent',abj:'Absent justifié',oubli:'Oubli d’envoi',rien:'Rien reçu',retard:'En retard',tenue:'Oubli de tenue'};
 /* retards et oublis de tenue d'un élève sur le cycle (appel manuel) */
