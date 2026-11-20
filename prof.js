@@ -206,7 +206,17 @@ function rendre(){
   const Vs={classes:vClasses,import:vImport,appel:vAppel,seance:vSeance,eleves:vEleves,fiche:vFiche,note:vNote,pilotage:vPilotage,chrono:()=>carteCCF('Épreuve du CCF.')+chronoView(),export:vExport};
   $('#main').innerHTML=icons(chb+(DEMO?bandeauDemo():'')+bandeauSauvegarde()+(Vs[P.vue]||vClasses)());
   if(chb){const h=document.querySelector('header'),b=document.querySelector('.chband');if(h&&b)b.style.top=(h.getBoundingClientRect().height+6)+'px'}
+  cartesTel();
 }
+/* v3.2 · Téléphone : chaque tableau devient une carte par ligne (étiquette de colonne devant chaque valeur). Rien ne change sur iPad. */
+function cartesTel(){
+  if(!matchMedia('(max-width:600px)').matches)return;
+  document.querySelectorAll('#main table.tt').forEach(t=>{const R=t.rows;if(R.length<2)return;const H=[...R[0].cells];if(H.length<3||!H.every(c=>c.tagName==='TH'))return;
+    const lab=[];H.forEach(c=>{for(let k=0;k<(c.colSpan||1);k++)lab.push(c.textContent.trim().replace(/\s+/g,' '))});
+    t.classList.add('cartes');
+    for(let i=1;i<R.length;i++){let j=0;[...R[i].cells].forEach(c=>{if(j>0&&lab[j]&&!c.dataset.l)c.dataset.l=lab[j];j+=c.colSpan||1})}});
+}
+let _lgTel=matchMedia('(max-width:600px)').matches;addEventListener('resize',()=>{const m=matchMedia('(max-width:600px)').matches;if(m!==_lgTel){_lgTel=m;rendre()}});
 const render=rendre;                                     /* nom attendu par vues.js et le chrono */
 const pasDeClasse=t=>`<section class="card"><h2>${t}</h2><p class="muted">Importe d’abord la liste d’une classe (onglet Classes) ou des séances (onglet Importer).</p></section>`;
 function stripSeances(cy,cur,act){return `<div class="seg">${sessOf(cy).map(s=>`<button class="chip ${cur===s.id?'on':''}" data-act="${act||'seance'}" data-v="${s.id}">${s.n}</button>`).join('')}</div>`}

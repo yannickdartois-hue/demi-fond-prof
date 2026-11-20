@@ -408,3 +408,23 @@ table.fseances td.l{text-align:left}.fit b small{font-weight:600}
 .qr{position:relative;margin-top:26px}
 .qr::before{content:"";position:absolute;top:-22px;right:-14px;width:52px;height:52px;background:#fff url(icon-192.png) center/cover no-repeat;border-radius:14px;box-shadow:0 3px 10px rgba(0,0,0,.25);border:2px solid #fff}
 .qr svg{background:#fff}
+
+/* v3.2 · Téléphone (600 px et moins) : onglets en grille 3 × 3 (plus de défilement caché), en-tête non collant pour garder la place,
+   tableaux en cartes (une carte par élève, l'étiquette de la colonne devant chaque valeur). Rien ne change sur iPad. */
+@media (max-width:600px){
+  header{position:static}
+  .chband{top:6px!important}
+  nav.otop{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;overflow:visible;padding:0 10px 10px}
+  nav.otop .og{display:none}
+  nav.otop button{padding:0 4px!important;font-size:15px!important;min-height:44px}
+  .tw{overflow:visible}
+  table.tt.cartes{display:block;box-shadow:none;border-radius:0;font-size:15px}
+  table.tt.cartes tbody{display:block}
+  table.tt.cartes tr:first-child{display:none}
+  table.tt.cartes tr{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:10px 12px;margin:0 0 8px;background:var(--card);border-radius:var(--r-sm);box-shadow:inset 0 0 0 1px var(--line)}
+  table.tt.cartes tr>*{display:block;border:0;padding:2px 6px;text-align:left;position:static!important;border-radius:8px;min-width:0}
+  table.tt.cartes tr>*:first-child{flex:1 1 100%;padding:0;font-size:17px;font-weight:800;background:none!important}
+  table.tt.cartes td[data-l]::before,table.tt.cartes th[data-l]::before{content:attr(data-l) " : ";font-weight:600;color:var(--muted);font-size:14px}
+  table.tt.cartes td .in{max-width:110px;display:inline-block;vertical-align:middle}
+  details.alerts li,ul.alist li{display:block}details.alerts li>span:first-child,ul.alist li>span:first-child{margin-right:6px}
+}
