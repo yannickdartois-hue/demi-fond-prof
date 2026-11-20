@@ -404,3 +404,7 @@ table.fseances td.l{text-align:left}.fit b small{font-weight:600}
 .nuage{border:2px solid #2563eb;background:#eff6ff}.nuage h3{color:#1d4ed8;margin-top:0}
 .etapes3{margin:0;padding-left:22px}.etapes3 li{margin:6px 0}
 :root[data-theme="dark"] .nuage{background:#121d33}
+/* v4.3 : dessin de l'appli en haut à droite des QR, pour savoir dans quelle appli on est (hors du QR : il reste lisible) */
+.qr{position:relative;margin-top:26px}
+.qr::before{content:"";position:absolute;top:-22px;right:-14px;width:52px;height:52px;background:#fff url(icon-192.png) center/cover no-repeat;border-radius:14px;box-shadow:0 3px 10px rgba(0,0,0,.25);border:2px solid #fff}
+.qr svg{background:#fff}

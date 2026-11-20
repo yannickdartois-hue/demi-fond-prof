@@ -28,8 +28,8 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 /* chOuvrir (défini par l'appli) : rouvre l'écran Chrono quand un chrono reprend après rechargement */
 setTimeout(()=>{try{chRestore();if(CH.run)render()}catch(e){}},0);
 function chNext(){const r=CH.run;const T0=r.end;const Q=CH.quiet;const bp=(f,d)=>{if(!Q)beep(f,d)},sy=t=>{if(!Q)say(t)};if(r.ph==='pre'||r.ph==='rest'){r.i++;r.ph='run';r.left=CH.w;r.end=T0+CH.w*1000;r.midDone=false;bp(1000,600);sy('Partez')}
-  else if(r.ph==='run'){if(r.i>=CH.n||!CH.r){if(r.i>=CH.n){r.ph='done';r.left=0;bp(600,900);sy('Stop. Terminé');clearInterval(CH.h);try{CH.lock&&CH.lock.release()}catch(e){}chSave();render();return}}
-    r.ph='rest';r.left=CH.r;r.end=T0+CH.r*1000;bp(600,700);sy('Stop')}
+  else if(r.ph==='run'){if(r.i>=CH.n||!CH.r){if(r.i>=CH.n){r.ph='done';r.left=0;bp(2000,900);sy('Stop. Terminé');clearInterval(CH.h);try{CH.lock&&CH.lock.release()}catch(e){}chSave();render();return}}
+    r.ph='rest';r.left=CH.r;r.end=T0+CH.r*1000;bp(1600,450);   /* v4.3 : fin d'effort aiguë (avant : grave) */sy('Stop')}
   r.beeped={};chSave();if(!Q)render()}
 function chTick(){const r=CH.run;if(!r||r.paused||r.ph==='done')return;r.left=(r.end-Date.now())/1000;
   if(r.left<-1.5){let g=0;const q=CH.quiet;CH.quiet=true;while(CH.run&&CH.run.ph!=='done'&&(CH.run.end-Date.now())/1000<=0&&g++<500)chNext();CH.quiet=q;render();return}
