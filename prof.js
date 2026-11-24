@@ -282,13 +282,17 @@ function qrPlein(titre,sous,parts){const d=document.createElement('div');d.class
   d.innerHTML=`<div><h2>${titre}</h2><p>${sous}</p><div class="qr" id="qpz"></div><p class="small center" id="qpn"></p><button class="btn pri big" type="button">Fermer</button></div>`;
   let i=0;const z=d.querySelector('#qpz'),n=d.querySelector('#qpn');z.innerHTML=svgQR(parts[0]);if(parts.length>1)n.textContent='1 / '+parts.length+' · la tablette vise jusqu’au bout';
   const h=parts.length>1?setInterval(()=>{i=(i+1)%parts.length;z.innerHTML=svgQR(parts[i]);n.textContent=(i+1)+' / '+parts.length+' · la tablette vise jusqu’au bout'},1100):null;
-  d.querySelector('button').onclick=()=>{if(h)clearInterval(h);d.remove()};document.body.appendChild(d)}
+  d.querySelector('.btn.pri.big').onclick=()=>{if(h)clearInterval(h);d.remove()};document.body.appendChild(d)}
 /* v2.2 : séances reçues, par séance : rangs des élèves dans la liste (« 0.3.12 ») → la tablette affiche « ✓ reçue par le professeur » */
 function recusDe(c,L){const o={};sessOf(L.cy||'S').forEach(s=>{const r=[];(L.eleves||[]).forEach((n,i)=>{const e=P.eleves[cleEleve(c,n)];if(e&&e.recu&&e.recu[s.id])r.push(i)});if(r.length)o[s.id]=r.join('.')});return Object.keys(o).length?o:undefined}
-async function qrDemarrage(c){const L=P.classesL[c],k=await clePublique();if(!L.cc){L.cc=EPSCode.nouvelleCle();sauver()}
-  const txt=await DFQR.encoder({a:'DFE',v:1,t:'C',c,y:L.cy||'S',l:L.eleves,u:L.lien||'',k,cc:L.cc,cj:await EPSCode.cjDuJour('dfp',c,L.cc,seanceCourante(L.cy||'S')),rc:recusDe(c,L)});   /* v2.0 : le QR ouvre toujours la séance en cours (2 h), sans code à taper */
-  const sj=(SBY[seanceCourante(L.cy||'S')]||{}).n||'';
-  qrPlein('Classe '+esc(c)+' · demi-fond '+CYC[L.cy||'S'].label,(sj?'Ce QR ouvre la séance <b>'+esc(sj)+'</b> pendant 2 h. ':'')+'Appli élève : « Scanner le QR de la classe » (accueil, Groupe, ou bandeau 🔒 de la séance)',[txt])}
+async function qrDemarrage(c,sId){const L=P.classesL[c],k=await clePublique();if(sId){P.seance=sId;sauver()}if(!L.cc){L.cc=EPSCode.nouvelleCle();sauver()}
+  /* v3.7 : le QR ouvre la séance choisie (onglet Séance ou « Code du cours ») : une seule séance du jour, la même partout */
+  const sid=seanceCourante(L.cy||'S'),jr=EPSCode.jour(),cj={d:jr,s:String(sid),k:await EPSCode.code(L.cc,c,jr,sid)};
+  const txt=await DFQR.encoder({a:'DFE',v:1,t:'C',c,y:L.cy||'S',l:L.eleves,u:L.lien||'',k,cc:L.cc,cj,rc:recusDe(c,L)});   /* v2.0 : le QR ouvre toujours la séance en cours (2 h), sans code à taper */
+  const sj=(SBY[sid]||{}).n||'';
+  /* v3.7 : boutons pour choisir la séance que le QR ouvre */
+  const choix=`<span class="row wrap" style="justify-content:center;gap:6px;margin:6px 0">${sessOf(L.cy||'S').map(x=>`<button type="button" class="btn sm${x.id===sid?' pri':''}" data-act="qrseance" data-v="${esc(c)}|${x.id}">${esc(x.id.toUpperCase())}</button>`).join('')}</span>`;
+  qrPlein('Classe '+esc(c)+' · demi-fond '+CYC[L.cy||'S'].label,choix+(sj?'Ce QR ouvre la séance <b>'+esc(sj)+'</b> pendant 2 h. ':'')+'Appli élève : « Scanner le QR de la classe » (accueil, Groupe, ou bandeau 🔒 de la séance)',[txt])}
 /* rappel d'archivage : des séances reçues pendant une année scolaire précédente (l'année scolaire commence le 15 août) */
 const anneeSco=ms=>{const d=new Date(ms);return d.getFullYear()-((d.getMonth()<7||(d.getMonth()===7&&d.getDate()<15))?1:0)};
 function vieilleAnnee(){if(DEMO)return null;const now=anneeSco(Date.now());let old=null;
@@ -640,7 +644,10 @@ document.addEventListener('click',async ev=>{
     case 'csv':return exporter(v);
     case 'imprimer':return window.print();
     case 'qrdem':return qrDemarrage(v);
-    case 'codecours':{const L=P.classesL[v];if(!L)return;if(!L.cc){L.cc=EPSCode.nouvelleCle();sauver()}return EPSCode.prof({app:'dfp',classe:v,cle:L.cc,seances:CYC[L.cy||'S'].sess.map(s=>({v:s.id,n:s.n}))})}
+    case 'qrseance':{const i=v.lastIndexOf('|');document.querySelectorAll('.qr-plein').forEach(x=>x.remove());return qrDemarrage(v.slice(0,i),v.slice(i+1))}
+    case 'codecours':{const L=P.classesL[v];if(!L)return;if(!L.cc){L.cc=EPSCode.nouvelleCle();sauver()}EPSCode.prof({app:'dfp',classe:v,cle:L.cc,proposee:seanceCourante(L.cy||'S'),seances:CYC[L.cy||'S'].sess.map(s=>({v:s.id,n:s.n}))});
+      /* v3.7 : changer la séance ici change aussi la séance du jour de l'outil (et donc celle du QR de la classe) */
+      const se=document.getElementById('eps-code-s');if(se)se.addEventListener('change',()=>{P.seance=se.value;sauver()});return}
     case 'reprise':return qrReprise(k);
     case 'clcoller':return importerListe([],$('#cl-txt').value,$('#cl-nom').value.trim(),$('#cl-cy').value);
     case 'clsuppr':if(!confirm('Retirer la liste de la classe '+v+' ? (Les séances reçues sont gardées.)'))return;delete P.classesL[v];classeParDefaut();break;
