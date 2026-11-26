@@ -7,7 +7,7 @@
 const AVT=(n,b,c)=>window.EPSAvatar?EPSAvatar(n,b,c):'';
 
 'use strict';
-const APP_VERSION='v3.8 · 26/11/2026';
+const APP_VERSION='v3.9 · 26/11/2026';
 const CLEP='dfp-v1';
 const $=s=>document.querySelector(s);
 const nk=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
