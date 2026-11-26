@@ -7,7 +7,7 @@
 const AVT=(n,b,c)=>window.EPSAvatar?EPSAvatar(n,b,c):'';
 
 'use strict';
-const APP_VERSION='v3.1 · 20/11/2026';
+const APP_VERSION='v3.8 · 26/11/2026';
 const CLEP='dfp-v1';
 const $=s=>document.querySelector(s);
 const nk=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
@@ -517,7 +517,7 @@ function detail(k,sid){const e=P.eleves[k];const d=e.seances[sid];const run=runO
   if((d.np||[]).length){const C=d.npc||{};const NPL={ann:'Les anneaux 6’',al4:'Allures',al:'Allures',ra:'Récupération active',ra2:'Récupération active',ct:'Contrat de tours',warm:'Échauffement',warmT:'Échauffement',rel:'Relais'},nomB=k=>{const b=s.blocks.map(bk).find(b=>b[1]===k||b[0]===k);return NPL[k]||(b&&typeof b[2]==='string'?b[2]:k)};L.push(['⏭ Exercices passés',d.np.map(k=>esc(nomB(k))+(C[k]?' · '+esc(NP_TXTP(C[k])):'')).join('<br>')])}
   if(d.aj)L.push(['Ajustement',esc(d.aj)]);if(d.pe)L.push(['Projets évaluation','3’ '+f(d.pe.v3)+' m · 1’30 '+f(d.pe.p)+' m · '+esc(d.pe.why||'')]);
   if(d.ad)L.unshift(['Présence','pratique adaptée (tolérances élargies)']);if(d.st)L.unshift(['Présence',ST_TXT[d.st]+(d.mot?' · '+esc(d.mot):'')]);
-  if(d.vj)L.unshift(['VMA du jour','⚠ modifiée par l’élève : '+esc(d.vj)+' km/h (mesurée : '+fV(vma)+')']);if(d.cx)L.unshift(['Coach remplaçant',esc(d.cx.n)+' · '+esc(WHY_TXT[d.cx.why]||'')]);
+  if(d.vj)L.unshift(['VMA du jour','⚠ modifiée par l’élève : '+esc(d.vj)+' km/h (mesurée : '+fV(vma)+')'+(vjOf(d)==null?' · <b>valeur impossible, ignorée</b> : calculs faits avec la VMA mesurée':'')]);if(d.cx)L.unshift(['Coach remplaçant',esc(d.cx.n)+' · '+esc(WHY_TXT[d.cx.why]||'')]);
   const B=[],rw=(t,v)=>B.push(`<tr><th>${t}</th><td>${v}</td></tr>`),bf=d.st==='abs'?null:bilanFait(s,d);
   if(!d.st||d.st==='bl'){
     if((bl.cr||[]).some(Boolean)||bf)rw('Coach a vu',s.crit.map((c,i)=>(bl.cr&&bl.cr[i]?'☑ ':'☐ ')+esc(c)).join('<br>'));

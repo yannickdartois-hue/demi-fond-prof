@@ -22,6 +22,10 @@ const tp=(t,p)=>{const a=num(t),b=num(p);if(a==null&&b==null)return null;return 
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const norm=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').trim().toLowerCase();
 
+/* v3.8 (= élève v6.6) : « Ma VMA du jour » saisie par l'élève : mêmes bornes que les boutons + et − de l'appli élève ; une valeur hors bornes (négative, 0, 50…) n'entre jamais dans les calculs ni dans la note */
+const VJ_MIN=6,VJ_MAX=24,VJ_PAS=0.5;
+const vjOf=d=>{const x=d?num(d.vj):null;return x!=null&&x>=VJ_MIN&&x<=VJ_MAX?x:null};
+
 /* ---- VMA de travail d'un coureur à une séance ---- */
 function vmaOf(run,sid){
   const cy=cyOfSid(sid),L=sessOf(cy),i=L.findIndex(s=>s.id===sid),se=run.seances||{};
@@ -166,7 +170,7 @@ function nomFichier(classe,eleve,sid,suffixe){const nom=nomDe(eleve),pre=prenomD
   return (slug(classe)||'Classe')+'_'+(slug(nom)+(pre?'_'+slug(pre):'')||'Eleve') /* prénom complet : deux élèves de même nom ne doivent pas donner le même fichier */+'_'+String(sid).toUpperCase()+(suffixe?'_'+suffixe:'')+'.json'}
 /* ---- fiche « séance d'un élève » (fichier JSON et QR) ----
    run = {nom complet, sexe, vmaManuelle, seances:{sid:{…}}} */
-function ctxSeance(run,sid){const d=run.seances&&run.seances[sid];if(!d)return null;if(isM(run))return Object.assign({},d,{_v:vmmOf(run,sid),_mar:1});const v=(num(d.vj)||vmaOf(run,sid));
+function ctxSeance(run,sid){const d=run.seances&&run.seances[sid];if(!d)return null;if(isM(run))return Object.assign({},d,{_v:vmmOf(run,sid),_mar:1});const v=(vjOf(d)||vmaOf(run,sid));
   const L=sessOf(cyOfSid(sid)),i=L.findIndex(s=>s.id===sid);let ref=null;
   for(let k=i-1;k>=0&&ref==null;k--){const x=run.seances[L[k].id];if(!x)continue;const r=p130real(x.p2)||p130real(x.p);if(r)ref=R(r);else if(x.m130){const m=tp(x.m130.t,x.m130.p);if(m)ref=R(m)}}
   return Object.assign({},d,{_v:v||num(d._v),_ref:ref})}

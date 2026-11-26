@@ -15,7 +15,7 @@ function getPath(o,path){return path.split('.').reduce((x,k)=>x==null?undefined:
 const hasData=d=>!!d&&Object.keys(d).some(k=>k!=='_v');
 function saveS(){const b=curBin();if(b&&V.sid){b.mod=b.mod||{};b.mod[V.sid]=Date.now();const r=b.runners[V.ri||0];if(r&&r.imp)delete r.imp[V.sid];b.dates=b.dates||{};if(!b.dates[V.sid])b.dates[V.sid]=today()}save()}
 /* VMA effective d'une séance (VMA du jour modifiée, sinon mesurée) et projets tenus calculés avec elle */
-function effV(run,sid){const d=run.seances&&run.seances[sid];return (d&&num(d.vj))||vmaOf(run,sid)}
+function effV(run,sid){const d=run.seances&&run.seances[sid];return vjOf(d)||vmaOf(run,sid)}
 function ctx(run,sid,d){if(isM(run))return Object.assign({},d,{_v:vmmOf(run,sid)||num(d&&d._v),_mar:1});return Object.assign({},d,{_v:effV(run,sid)||num(d&&d._v),_ref:lastReal(run,sid)})}
 function tenR(run,sid){const d=run.seances&&run.seances[sid];if(!d)return [0,0];return tenus(sid,ctx(run,sid,d))}
 function sessState(b,sid){const has=b.runners.some(r=>hasData(r.seances&&r.seances[sid])&&!(r.imp&&r.imp[sid]));const sent=b.sent&&b.sent[sid],mod=b.mod&&b.mod[sid];
@@ -151,11 +151,11 @@ const OBJ_INTRO={s1:'Aujourd’hui tu <b>mesures ta VMA de travail</b> : les gra
  t2:'Aujourd’hui tu <b>mesures ta VMA</b> au test 36"/24" : la moyenne des plots atteints = ta VMA. Elle servira à calculer tous tes objectifs de T3 à T9.'};
 function objCard(s,run,d,vMes,v){
   if(OBJ_INTRO[s.id])return `<section class="card obj"><h3>🎯 Mes objectifs du jour</h3><p>${OBJ_INTRO[s.id]}</p></section>`;
-  const mod=num(d.vj)!=null&&vMes!=null&&Math.abs(num(d.vj)-vMes)>0.05;const L=objectives(s,run,v);
+  const mod=vjOf(d)!=null&&vMes!=null&&Math.abs(vjOf(d)-vMes)>0.05;const L=objectives(s,run,v);
   const hide=HIDE_FIRST.includes(s.id)&&!d.vu&&v;const T=s.id[0]==='t';const idx=sessOf(T?'T':'S').findIndex(x=>x.id===s.id);
   const se_=run.seances||{};const src=T?(idx>=4&&testVma(se_.t5&&se_.t5.rt)?'T5':idx>=5&&testVma(se_.t6&&se_.t6.rt)?'T6':'T2'):(idx>=6&&se_.s6&&c3dist(se_.s6.c3)?'S6':idx>=1&&se_.s2&&c3dist(se_.s2.t3m)?'S2':'S1');
   return `<section class="card obj ${mod?'mod':''}"><h3>🎯 Mes objectifs du jour</h3>
-   <div class="row wrap"><label>Ma VMA du jour (km/h) ${stp('vj',d,{step:0.5,min:6,max:24,start:vMes?R(vMes*2)/2:12,ph:vMes?fV(vMes):'',cls:mod?'modin':'',chk:x=>x!=null&&(x<7||x>22)?'VMA inhabituelle : vérifie.':''})}</label>
+   <div class="row wrap"><label>Ma VMA du jour (km/h) ${stp('vj',d,{step:VJ_PAS,min:VJ_MIN,max:VJ_MAX,start:vMes?R(vMes*2)/2:12,ph:vMes?fV(vMes):'',cls:mod?'modin':'',chk:x=>x!=null&&(x<7||x>22)?'VMA inhabituelle : vérifie.':''})}</label>
    <p class="small ${mod?'warn':'muted'}">${vMes?(mod?`⚠ VMA modifiée (mesurée : ${fV(vMes)} km/h). Le prof le verra.`:`${T?'VMA mesurée':'Vitesse sur 3’ mesurée'} en ${src} : ${fV(vMes)} km/h.`):'Pas de VMA mesurée : entre celle que le prof t’a donnée.'}</p></div>
    ${!v?'':hide?`<p>📝 <b>Calcule d’abord tes objectifs</b> avec la 🧮 calculatrice (ou de tête : VMA × %), écris-les sur ta main ou dans ta tête, puis vérifie.</p>
      <ul class="objl">${L.map(o=>`<li><span>${o[0]}</span><b>?</b></li>`).join('')}</ul><div class="row wrap"><button class="btn" data-act="calc">🧮 Calculer</button><button class="btn pri" data-set="vu" data-v="1">Vérifier mes calculs</button></div>`
@@ -174,7 +174,7 @@ function presView(b,sid){
     return `<div class="pcol"><b>${esc(r.prenom)}</b><div class="seg">${[['','présent'],['abs','absent'],['bl','blessé / dispensé']].map(o=>`<button class="chip sm ${st===o[0]?'on':''}" data-st="${i}" data-v="${o[0]}">${o[1]}</button>`).join('')}${st?'':`<button class="chip sm ${d.ad?'on':''}" data-ad="${i}">pratique adaptée</button>`}</div></div>`}).join('')}</div>${b.runners.every(r=>!((r.seances&&r.seances[sid]||{}).st))?'<button class="lnk small" data-act="presclose">Replier</button>':''}</section>`;
 }
 function sessView(){
-  const b=curBin(),ri=V.ri||0,run=b.runners[ri],s=sessFor(run,V.sid),M=isM(run),d=sd(run,s.id),vMes=M?vmmOf(run,s.id):vmaOf(run,s.id),vma=M?vMes:(num(d.vj)||vMes);
+  const b=curBin(),ri=V.ri||0,run=b.runners[ri],s=sessFor(run,V.sid),M=isM(run),d=sd(run,s.id),vMes=M?vmmOf(run,s.id):vmaOf(run,s.id),vma=M?vMes:(vjOf(d)||vMes);
   const [t,n]=tenus(s.id,Object.assign(ctx(run,s.id,d),{_v:vma},M?{_mar:1}:{}));const co=coachOf(b,ri,s.id);
   const head=`<section class="lanehead sess ${s.id[0]==='t'?'t':'s'}"><span class="ln">${s.n}</span><div><b>${esc(s.t)}</b><span><strong>Je réussis si</strong> ${esc(s.goal)}</span></div></section>${presView(b,s.id)}
   <div class="seg big">${b.runners.map((r,i)=>{const st=(r.seances&&r.seances[s.id]||{}).st;return `<button class="chip ${i===ri?'on':''}" data-ri="${i}">${esc(r.prenom)} ${st?'('+ST_TXT[st]+')':isM(r)?'marche':'court'}</button>`}).join('')}</div>`;
