@@ -123,7 +123,7 @@ const WARM_NAME=Object.fromEntries([].concat(...WARM_EX,WARM_OLD,WARM_PART));
 /* =====================================================================
    PARCOURS MARCHE — élèves asthmatiques (ou autre avis médical) : un élève
    du binôme peut suivre ce parcours (run.pc = 'm') pendant que l'autre court.
-   Mêmes numéros de séance que la classe (S1-S8, T1-T9) : le code du cours,
+   Mêmes numéros de séance que la classe (S1-S8, T1-T9) : le QR du jour,
    l'appel et l'envoi restent communs.
    Terminale : épreuve du lycée « marche fractionnée adaptée » 2 × 1000 m + 3’ (barème CCF 2021).
    Seconde : épreuve allégée 1 × 1000 m + 3’ (mêmes tables, un seul 1000 m).

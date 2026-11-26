@@ -285,14 +285,16 @@ function qrPlein(titre,sous,parts){const d=document.createElement('div');d.class
   d.querySelector('.btn.pri.big').onclick=()=>{if(h)clearInterval(h);d.remove()};document.body.appendChild(d)}
 /* v2.2 : séances reçues, par séance : rangs des élèves dans la liste (« 0.3.12 ») → la tablette affiche « ✓ reçue par le professeur » */
 function recusDe(c,L){const o={};sessOf(L.cy||'S').forEach(s=>{const r=[];(L.eleves||[]).forEach((n,i)=>{const e=P.eleves[cleEleve(c,n)];if(e&&e.recu&&e.recu[s.id])r.push(i)});if(r.length)o[s.id]=r.join('.')});return Object.keys(o).length?o:undefined}
-async function qrDemarrage(c,sId){const L=P.classesL[c],k=await clePublique();if(sId){P.seance=sId;sauver()}if(!L.cc){L.cc=EPSCode.nouvelleCle();sauver()}
-  /* v3.7 : le QR ouvre la séance choisie (onglet Séance ou « Code du cours ») : une seule séance du jour, la même partout */
-  const sid=seanceCourante(L.cy||'S'),jr=EPSCode.jour(),cj={d:jr,s:String(sid),k:await EPSCode.code(L.cc,c,jr,sid)};
-  const txt=await DFQR.encoder({a:'DFE',v:1,t:'C',c,y:L.cy||'S',l:L.eleves,u:L.lien||'',k,cc:L.cc,cj,rc:recusDe(c,L)});   /* v2.0 : le QR ouvre toujours la séance en cours (2 h), sans code à taper */
+async function qrDemarrage(c,sId,cjForce,svgSeul){const L=P.classesL[c],k=await clePublique();if(sId){P.seance=sId;sauver()}if(!L.cc){L.cc=EPSCode.nouvelleCle();sauver()}
+  /* v3.7 : le QR ouvre la séance choisie (onglet Séance ou boutons sous le QR) : une seule séance du jour, la même partout */
+  const sid=cjForce?cjForce.s:seanceCourante(L.cy||'S'),jr=EPSCode.jour(),cj=cjForce||{d:jr,s:String(sid),k:await EPSCode.code(L.cc,c,jr,sid)};
+  const txt=await DFQR.encoder({a:'DFE',v:1,t:'C',c,y:L.cy||'S',l:L.eleves,u:L.lien||'',k,cc:L.cc,cj,rc:recusDe(c,L)});
+  if(svgSeul){try{return DFQR.svgQR(txt)}catch(e){return '<p class="warn">Trop de données pour un seul QR.</p>'}}   /* v2.0 : le QR ouvre toujours la séance en cours (2 h) */
   const sj=(SBY[sid]||{}).n||'';
   /* v3.7 : boutons pour choisir la séance que le QR ouvre */
   const choix=`<span class="row wrap" style="justify-content:center;gap:6px;margin:6px 0">${sessOf(L.cy||'S').map(x=>`<button type="button" class="btn sm${x.id===sid?' pri':''}" data-act="qrseance" data-v="${esc(c)}|${x.id}">${esc(x.id.toUpperCase())}</button>`).join('')}</span>`;
-  qrPlein('Classe '+esc(c)+' · demi-fond '+CYC[L.cy||'S'].label,choix+(sj?'Ce QR ouvre la séance <b>'+esc(sj)+'</b> pendant 2 h. ':'')+'Appli élève : « Scanner le QR de la classe » (accueil, Groupe, ou bandeau 🔒 de la séance)',[txt])}
+  const prep=`<span class="row" style="justify-content:center;margin:6px 0"><button type="button" class="btn sm" data-act="qrprep" data-v="${esc(c)}">🗓 QR pour un autre jour · imprimer</button></span>`;
+  qrPlein('Classe '+esc(c)+' · demi-fond '+CYC[L.cy||'S'].label,choix+prep+(sj?'Ce QR ouvre la séance <b>'+esc(sj)+'</b> pendant 2 h. ':'')+'Appli élève : « Scanner le QR de la classe » (accueil, Groupe, ou bandeau 🔒 de la séance)',[txt])}
 /* rappel d'archivage : des séances reçues pendant une année scolaire précédente (l'année scolaire commence le 15 août) */
 const anneeSco=ms=>{const d=new Date(ms);return d.getFullYear()-((d.getMonth()<7||(d.getMonth()===7&&d.getDate()<15))?1:0)};
 function vieilleAnnee(){if(DEMO)return null;const now=anneeSco(Date.now());let old=null;
@@ -310,7 +312,7 @@ function vClasses(){
   ${C.length?C.map(c=>{const L=P.classesL[c];return `<section class="card"><h3>${esc(c)} <span class="cls ${L.cy==='T'?'t':'s'}">${CYC[L.cy||'S'].label}</span> <span class="small muted">· ${L.eleves.length} élèves</span></h3>
     <div class="row wrap"><label>Niveau<select class="in sel cl-cy" data-cl="${esc(c)}"><option value="S"${L.cy!=='T'?' selected':''}>Seconde</option><option value="T"${L.cy==='T'?' selected':''}>Terminale</option></select></label>
      <label style="flex:1 1 320px">Lien d’envoi en ligne (Nuage, « Demande de fichier ») — jamais visible par les élèves<input type="url" class="in cl-lien" style="max-width:none" data-cl="${esc(c)}" value="${esc(L.lien)}" placeholder="https://nuage03.apps.education.fr/s/…"></label></div>
-    <div class="row wrap"><button class="btn pri" data-act="qrdem" data-v="${esc(c)}">QR de démarrage</button><button class="btn" data-act="codecours" data-v="${esc(c)}">🔑 Code du cours</button><button class="btn sm ghost" data-act="clsuppr" data-v="${esc(c)}">Retirer la liste</button></div>
+    <div class="row wrap"><button class="btn pri" data-act="qrdem" data-v="${esc(c)}">QR de démarrage</button><button class="btn sm ghost" data-act="clsuppr" data-v="${esc(c)}">Retirer la liste</button></div>
     <details><summary class="small">Voir la liste</summary><ol class="small">${L.eleves.map(n=>`<li>${esc(n)}</li>`).join('')}</ol></details></section>`}).join('')+`<p class="small muted">Le QR contient la liste, le niveau, le lien et ta clé de copie de secours. Si tu changes la liste ou le lien, les groupes rescannent le nouveau QR (Groupe → Nouvelle liste de classe).</p>`:''}
 <section class="card"><h3>🔑 Un groupe a oublié son code</h3><ol class="small"><li>Le groupe touche « Code oublié ? » : un QR s’affiche.</li><li>Ici : <b>Recevoir → Scanner les QR codes</b> → ce QR (sur la tablette, en photo ou imprimé). <b>Le code s’affiche en grand</b> : dites-le au groupe.</li><li>Carnet ancien, pas rouvert depuis la mise à jour : un QR de déverrouillage s’affiche à la place ; le groupe le scanne et choisit un nouveau code. Rien n’est perdu.</li></ol><p class="small muted">Tablette qui n’avait jamais scanné le QR de démarrage : nouveau groupe, puis <b>Élèves</b> → fiche → « QR de reprise » pour chaque élève.</p></section>
   <section class="card"><h3>Fin d’année</h3><p class="small muted">Télécharge une sauvegarde complète, puis vide l’outil pour la rentrée suivante.</p><button class="btn sm ghost" data-act="archiver">Archiver l’année et repartir à zéro</button></section>
@@ -645,9 +647,7 @@ document.addEventListener('click',async ev=>{
     case 'imprimer':return window.print();
     case 'qrdem':return qrDemarrage(v);
     case 'qrseance':{const i=v.lastIndexOf('|');document.querySelectorAll('.qr-plein').forEach(x=>x.remove());return qrDemarrage(v.slice(0,i),v.slice(i+1))}
-    case 'codecours':{const L=P.classesL[v];if(!L)return;if(!L.cc){L.cc=EPSCode.nouvelleCle();sauver()}EPSCode.prof({app:'dfp',classe:v,cle:L.cc,proposee:seanceCourante(L.cy||'S'),seances:CYC[L.cy||'S'].sess.map(s=>({v:s.id,n:s.n}))});
-      /* v3.7 : changer la séance ici change aussi la séance du jour de l'outil (et donc celle du QR de la classe) */
-      const se=document.getElementById('eps-code-s');if(se)se.addEventListener('change',()=>{P.seance=se.value;sauver()});return}
+    case 'qrprep':{const L=P.classesL[v];if(!L)return;if(!L.cc){L.cc=EPSCode.nouvelleCle();sauver()}document.querySelectorAll('.qr-plein').forEach(x=>x.remove());EPSCode.preparer({app:'dfp',classe:v,cle:L.cc,titre:'Demi-fond',proposee:seanceCourante(L.cy||'S'),seances:CYC[L.cy||'S'].sess.map(s=>({v:s.id,n:s.n})),qr:cj=>qrDemarrage(v,null,cj,true)});return}
     case 'reprise':return qrReprise(k);
     case 'clcoller':return importerListe([],$('#cl-txt').value,$('#cl-nom').value.trim(),$('#cl-cy').value);
     case 'clsuppr':if(!confirm('Retirer la liste de la classe '+v+' ? (Les séances reçues sont gardées.)'))return;delete P.classesL[v];classeParDefaut();break;

@@ -9,18 +9,17 @@ window.EPS_AIDE={appli:'Demi-fond · Outil prof',bouton:false,pied:'Toutes les d
 </ul>`},
 {t:'🚶 Parcours marche (asthme, avis médical)',html:`<ul>
 <li>Pour un élève dont l’asthme ou un certificat d’inaptitude partielle justifie de marcher : dans son carnet, onglet Groupe → <b>Parcours marche</b>, sur son nom. Son camarade continue à courir et le coache.</li>
-<li>Mêmes numéros de séance que la classe (code du cours, appel, envoi communs), mais des séances de marche : technique et mesure de la vitesse de marche (3’ à fond ÷ 50), allures, 1000 m, fractionné, projets.</li>
+<li>Mêmes numéros de séance que la classe (QR du jour, appel, envoi communs), mais des séances de marche : technique et mesure de la vitesse de marche (3’ à fond ÷ 50), allures, 1000 m, fractionné, projets.</li>
 <li><b>Terminale</b> : épreuve 2 × 1000 m + 3’ (barème « marche fractionnée adaptée »). <b>Seconde</b> : épreuve allégée 1000 m + 3’, mêmes tables.</li>
 <li>AFL1 /12 = performance /8 (moyenne : temps des 1000 m, distance en 3’) + projet de distance sur 3’ /4 (à 5 m près = 4).</li>
 <li>Dans les tableaux, l’élève porte 🚶 ; le détail d’une séance signale s’il a été gêné pour respirer.</li>
 </ul><p class="astuce">Ce n’est pas automatique pour tout asthmatique : un asthme suivi et traité permet souvent de courir. Le parcours se décide avec l’avis médical.</p>`},
-{t:'🔑 Code du cours (chaque cours)',html:`<ol>
-<li>Les élèves utilisent leur téléphone : sans verrou, ils pourraient remplir chez eux des séances à l’avance. Le code du cours l’empêche.</li>
-<li>Début de cours : Classes → <span class="bouton">🔑 Code du cours</span>, vérifiez la séance, écrivez les 4 chiffres au tableau.</li>
-<li>Chaque groupe tape le code : la séance du jour s’ouvre sur son téléphone pendant 2 heures. Sans code, l’appli se consulte mais on ne peut rien saisir.</li>
-<li><b>Plus rapide : le QR du jour.</b> Ouvrez d’abord 🔑 Code du cours (bonne séance), puis affichez le QR de démarrage : scanné par un binôme, il ouvre la séance sans rien taper. Le code au tableau reste valable.</li>
-<li>Le code ne vaut que pour cette séance et ce jour-là. Pour préparer un cours, changez la date : le code s’affiche à l’avance. Aucune connexion nécessaire.</li>
-</ol><p class="astuce">Une seule fois après cette mise à jour : refaites scanner le <b>QR de démarrage</b> (il apporte la clé de la classe). Tant qu’un téléphone ne l’a pas rescanné, il n’est pas verrouillé.</p>`},
+{t:'📷 QR du jour (chaque cours)',html:`<ol>
+<li>Les élèves utilisent leur téléphone : sans verrou, ils pourraient remplir chez eux des séances à l’avance. Le <b>QR du jour</b> l’empêche, sans aucun code à taper.</li>
+<li>Début de cours : Classes → <span class="bouton">QR de démarrage</span>. La séance proposée est la suivante de la dernière ouverte : vérifiez-la, touchez-en une autre si besoin.</li>
+<li>Chaque groupe scanne le QR : la séance s’ouvre sur son téléphone pendant 2 heures. Sans ce QR, l’appli se consulte mais on ne peut rien saisir.</li>
+<li>Le QR ne vaut que ce jour-là. Pas d’écran en cours ? <b>🗓 QR pour un autre jour · imprimer</b> : choisissez la date et la séance, imprimez-le d’avance. Aucune connexion nécessaire.</li>
+</ol>`},
 
 {t:'Démarrer en 5 minutes',html:`<ol>
 <li><b>Classes</b> : importez la liste Pronote (fichier xlsx/csv, ou liste collée « NOM Prénom »). Une colonne « Sexe » remplit fille/garçon.</li><li><b>Toutes les classes d’un coup</b> : le fichier fait par la page « Mes classes » du portail mon-EPS. <b>Élève arrivé en cours d’année</b> : collez « NOM Prénom » avec le nom de la classe → « Ajouter ces élèves ». Classe déjà présente : l’appli demande toujours « Ajouter » ou « Remplacer la liste ». Ensuite, faites rescanner le QR de démarrage.</li>
