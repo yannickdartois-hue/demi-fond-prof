@@ -36,7 +36,7 @@ window.EPS_AIDE={appli:'Demi-fond · Outil prof',bouton:false,pied:'Toutes les d
 <li>Installez l’outil sur l’écran d’accueil de l’iPad (Safari → Partager → « Sur l’écran d’accueil ») et faites une <b>sauvegarde</b> après chaque import.</li></ol>`},
 {t:'Les onglets : avant, pendant, après la séance',html:`<ul>
 <li><b>Avant</b> — Classes : listes, niveau, lien du Nuage, QR de démarrage, archivage de fin d’année.</li>
-<li><b>Pendant</b> — Appel (4 statuts : présent, absent, inapte, inapte partiel ; daté, historique gardé), Recevoir (scanner les QR, importer les fichiers), Chrono (bips et voix sur enceinte).</li>
+<li><b>Pendant</b> — Appel (4 statuts : présent, absent, inapte, inapte partiel ; daté, historique gardé), Recevoir (scanner les QR, importer les fichiers), Chrono (bips et voix sur enceinte : 3-2-1 et bip à chaque départ et arrêt, annonce des 45 s au 1’30, pause, reprise, remise à zéro ; chaque signal une seule fois, même après une pause ou une mise en veille).</li>
 <li><b>Après</b> — Séance (la classe sur une séance, ★ et contrôle prof), Élèves (tableau du cycle, fiches), Note, Pilotage, Exporter.</li></ul>`},
 {t:'Recevoir les séances',html:`<ul>
 <li><b>QR</b> : <span class="bouton">Scanner les QR codes</span>, puis montrez les QR un par un (un par binôme). Un bip = séance rangée. Les anciens QR du carnet numérique sont acceptés.</li>

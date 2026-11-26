@@ -778,8 +778,8 @@ document.addEventListener('click',async ev=>{
       /* le nom fusionné devient un alias : les prochains envois sous ce nom iront dans la bonne fiche */
       P.alias[src]=dst;delete P.eleves[src];break}
     case 'chgo':beep(700,60);return chStart();
-    case 'chpause':{const r=CH.run;if(!r)return;if(r.paused){r.end=Date.now()+r.left*1000;r.paused=false}else r.paused=true;chSave();return rendre()}
-    case 'chstop':chStop();return rendre();
+    case 'chpause':chPause();return rendre();
+    case 'chstop':{const r=CH.run;if(r&&!r.paused&&r.ph!=='done'&&!confirm('Remettre le chrono à zéro ? Il est en cours.'))return;chStop();return rendre()}
     case 'demoQuitter':location.href=location.pathname;return;
     case 'demo':window.scrollTo(0,0);return ouvrirDemoProf();
     default:return;
