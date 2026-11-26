@@ -20,6 +20,7 @@ window.EPS_AIDE={appli:'Demi-fond · Outil prof',bouton:false,pied:'Toutes les d
 <li>Précisions cumulables : en retard, oubli de tenue, absence justifiée, oubli d’envoi (carnet non reçu). Elles comptent dans la note de participation comme avant (−0,5 chacune, absence non justifiée −1).</li>
 <li>Statut proposé (pointillés) d’après le carnet reçu : séance reçue = présent, « absent » = absent, « blessé » = inapte. ⚠ carnet non reçu : rien n’est arrivé du groupe.</li>
 <li>Chaque appel est daté (le jour du premier appel de la séance) et gardé : changer de séance ou corriger plus tard n’efface rien. Séance refaite un autre jour : « Séance refaite aujourd’hui » crée un nouvel appel daté, le précédent reste. Tout reste sur l’appareil, hors connexion, et part dans la sauvegarde. « Exporter l’appel » : CSV de tout l’historique de la classe.</li>
+<li><b>🙂 Bilan de fin de cours</b> (bouton en haut de l’écran Appel) : appréciation générale facultative de chaque élève — ☹ Pas bon, 🙁 Moyen, 🙂 Bien, 😃 Très bien. Un toucher, re-toucher pour l’enlever ou en choisir une autre. Gardée avec l’appel de la séance et dans le récapitulatif ; ce n’est ni une note ni une évaluation de compétence.</li>
 </ol>`},
 {t:'📷 QR du jour (chaque cours)',html:`<ol>
 <li>Les élèves utilisent leur téléphone : sans verrou, ils pourraient remplir chez eux des séances à l’avance. Le <b>QR du jour</b> l’empêche, sans aucun code à taper.</li>
