@@ -14,6 +14,13 @@ window.EPS_AIDE={appli:'Demi-fond · Outil prof',bouton:false,pied:'Toutes les d
 <li>AFL1 /12 = performance /8 (moyenne : temps des 1000 m, distance en 3’) + projet de distance sur 3’ /4 (à 5 m près = 4).</li>
 <li>Dans les tableaux, l’élève porte 🚶 ; le détail d’une séance signale s’il a été gêné pour respirer.</li>
 </ul><p class="astuce">Ce n’est pas automatique pour tout asthmatique : un asthme suivi et traité permet souvent de courir. Le parcours se décide avec l’avis médical.</p>`},
+{t:'📋 Appel',html:`<ol>
+<li>Onglet <b>Appel</b> : un bouton par statut pour chaque élève — <b>P</b> présent, <b>A</b> absent, <b>I</b> inapte, <b>IP</b> inapte partiel. Absent et inapte sont toujours distincts.</li>
+<li>Toucher le statut actif l’enlève. On peut changer à tout moment pendant le cours ; « Les non renseignés : présents » complète d’un coup.</li>
+<li>Précisions cumulables : en retard, oubli de tenue, absence justifiée, oubli d’envoi (carnet non reçu). Elles comptent dans la note de participation comme avant (−0,5 chacune, absence non justifiée −1).</li>
+<li>Statut proposé (pointillés) d’après le carnet reçu : séance reçue = présent, « absent » = absent, « blessé » = inapte. ⚠ carnet non reçu : rien n’est arrivé du groupe.</li>
+<li>Chaque appel est daté (le jour du premier appel de la séance) et gardé : changer de séance ou corriger plus tard n’efface rien. Séance refaite un autre jour : « Séance refaite aujourd’hui » crée un nouvel appel daté, le précédent reste. Tout reste sur l’appareil, hors connexion, et part dans la sauvegarde. « Exporter l’appel » : CSV de tout l’historique de la classe.</li>
+</ol>`},
 {t:'📷 QR du jour (chaque cours)',html:`<ol>
 <li>Les élèves utilisent leur téléphone : sans verrou, ils pourraient remplir chez eux des séances à l’avance. Le <b>QR du jour</b> l’empêche, sans aucun code à taper.</li>
 <li>Début de cours : Classes → <span class="bouton">QR de démarrage</span>. La séance proposée est la suivante de la dernière ouverte : vérifiez-la, touchez-en une autre si besoin.</li>
@@ -29,7 +36,7 @@ window.EPS_AIDE={appli:'Demi-fond · Outil prof',bouton:false,pied:'Toutes les d
 <li>Installez l’outil sur l’écran d’accueil de l’iPad (Safari → Partager → « Sur l’écran d’accueil ») et faites une <b>sauvegarde</b> après chaque import.</li></ol>`},
 {t:'Les onglets : avant, pendant, après la séance',html:`<ul>
 <li><b>Avant</b> — Classes : listes, niveau, lien du Nuage, QR de démarrage, archivage de fin d’année.</li>
-<li><b>Pendant</b> — Appel (statut auto, corrigeable), Recevoir (scanner les QR, importer les fichiers), Chrono (bips et voix sur enceinte).</li>
+<li><b>Pendant</b> — Appel (4 statuts : présent, absent, inapte, inapte partiel ; daté, historique gardé), Recevoir (scanner les QR, importer les fichiers), Chrono (bips et voix sur enceinte).</li>
 <li><b>Après</b> — Séance (la classe sur une séance, ★ et contrôle prof), Élèves (tableau du cycle, fiches), Note, Pilotage, Exporter.</li></ul>`},
 {t:'Recevoir les séances',html:`<ul>
 <li><b>QR</b> : <span class="bouton">Scanner les QR codes</span>, puis montrez les QR un par un (un par binôme). Un bip = séance rangée. Les anciens QR du carnet numérique sont acceptés.</li>

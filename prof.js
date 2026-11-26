@@ -149,16 +149,20 @@ function coachDe(k){const e=P.eleves[k];if(!e)return null;const me=nk(e.full),pr
   return {n,yes,tot,err:er.length?R(moy(er)):null,fiab:moy(fi),nf:fi.length,niv,of,ot,ov,opr}}
 function coachTxt(k){const c=coachDe(k);if(!c||!c.n)return '–';const L=[c.niv?`niveau ${c.niv}`:'',c.nf?`contrôle ±${fc(c.fiab)} %`:'',c.err!=null?`pronostic ±${c.err} %`:'',c.tot?`aide ${c.yes}/${c.tot}`:'',c.of?`objectifs ${c.ot}/${c.ov||c.of} tenus${c.opr?` · ${c.opr} repris`:''}`:''].filter(Boolean);return L.length?L.join('<br><small>'):c.n+' séance'+(c.n>1?'s':'')}
 /* statut d'un élève à une séance (appel) */
-const STATUTS={present:'Présent',disp:'Dispensé / blessé',absent:'Absent',abj:'Absent justifié',oubli:'Oubli d’envoi',rien:'Rien reçu',retard:'En retard',tenue:'Oubli de tenue'};
+const STATUTS={present:'Présent',disp:'Inapte',ip:'Inapte partiel',absent:'Absent',abj:'Absent justifié',oubli:'Oubli d’envoi',rien:'Rien reçu',retard:'En retard',tenue:'Oubli de tenue'};   /* v3.13 : « disp » = Inapte ; « ip » nouveau */
 /* retards et oublis de tenue d'un élève sur le cycle (appel manuel) */
-function tenueRetard(k,c){const L=sessOf(clsCy(c||P.classe));let rt=0,tn=0;L.forEach(s=>{const o=P.appel[nk(c||P.classe)+'|'+s.id+'|'+k];if(o==='retard')rt++;if(o==='tenue')tn++});return [rt,tn]}
-function statut(k,sid){const o=P.appel[nk(P.classe)+'|'+sid+'|'+k];if(o)return {c:o,manuel:true};const e=P.eleves[k];const d=e&&e.seances[sid];
-  if(!d)return {c:'rien'};if(d.st==='abs')return {c:'absent'};if(d.st==='bl')return {c:'disp'};return {c:'present'}}
+function tenueRetard(k,c){c=c||P.classe;const L=sessOf(clsCy(c));let rt=0,tn=0;L.forEach(s=>{const m=statut(k,s.id,c).m||[];if(m.includes('retard'))rt++;if(m.includes('tenue'))tn++});return [rt,tn]}
+/* v3.13 (chantier 10) : le statut vient du module Appel (4 statuts + précisions), sinon de l'ancien appel, sinon du carnet reçu.
+   Codes rendus pour le reste de l'outil (note, fiche, export) : present, retard, tenue, oubli, absent, abj, disp (= inapte), ip, rien. */
+function statut(k,sid,c){c=c||P.classe;const st=apStatut(c,sid,k,APA.autoDe(k,sid)),m=st.m||[];let x;
+  if(!st.s)x='rien';else if(st.s==='a')x=m.includes('just')?'abj':'absent';else if(st.s==='i')x='disp';else if(st.s==='ip')x='ip';
+  else x=m.includes('oubli')?'oubli':m.includes('retard')?'retard':m.includes('tenue')?'tenue':'present';
+  return {c:x,m,s4:st.s,manuel:st.src==='appel'||st.src==='ancien'}}
 /* alertes pédagogiques de la classe */
 function alertes(c){const cy=clsCy(c),L=sessOf(cy),K=eleves(c);const out=[];
   let last=-1;K.forEach(k=>L.forEach((s,i)=>{if(P.eleves[k]&&P.eleves[k].seances[s.id]&&i>last)last=i}));
   K.forEach(k=>{const e=P.eleves[k];if(!e||!e.conflit)return;Object.entries(e.conflit).forEach(([sid,x])=>{if(SBY[sid])out.push(['dbl',`${esc(nomAff(k))} : ${SBY[sid].n} reçue depuis 2 groupes (${(x.a||[]).map(esc).join(' · ')} / ${(x.b||[]).map(esc).join(' · ')}). La dernière reçue est gardée : vérifiez avec l’élève. <button class="lnk" data-dblok="${esc(k)}" data-sid="${sid}">C’est réglé</button>`])})});
-  if(last>=0){const sid=L[last].id;const miss=K.filter(k=>!(P.eleves[k]&&P.eleves[k].seances[sid])&&!P.appel[nk(c)+'|'+sid+'|'+k]);if(miss.length)out.push(['qr',`Rien reçu en ${L[last].n} : ${miss.map(k=>esc(nomAff(k))).join(', ')}`])}
+  if(last>=0){const sid=L[last].id;const miss=K.filter(k=>!(P.eleves[k]&&P.eleves[k].seances[sid])&&!apStatut(c,sid,k,null).s);if(miss.length)out.push(['qr',`Rien reçu en ${L[last].n} : ${miss.map(k=>esc(nomAff(k))).join(', ')}`])}
   K.forEach(k=>{const e=P.eleves[k];if(!e)return;const run=runOf(e);const done=L.filter(s=>hasData(e.seances[s.id])&&!e.seances[s.id].st);
     const l3=done.slice(-3);if(l3.length===3&&l3.every(s=>{const [t,n]=tenR(run,s.id);return n>0&&t===0}))out.push(['ko',`${nm(e)} : aucun projet tenu sur ses 3 dernières séances`]);
     const vj=L.filter(s=>e.seances[s.id]&&e.seances[s.id].vj);if(vj.length)out.push(['vma',`${nm(e)} : VMA modifiée par l’élève (${vj.map(s=>s.n).join(', ')})`]);
@@ -374,14 +378,126 @@ function groupesAppel(sid){
   return `<section class="card"><h3>Groupes · ${SBY[sid].n}</h3>
     ${M.length?`<p class="ko">⚠ Rien reçu de :</p><ul>${M.map(g=>`<li><b>${g.qui.map(k=>esc(nomAff(k))).join(' · ')}</b> <span class="small muted">(groupe en ${g.s} : ${g.noms.map(esc).join(', ')})</span></li>`).join('')}</ul><p class="small muted">Absents, ou envoi oublié ? Le carnet reste sur leur tablette : il suffit d’ouvrir la séance et d’envoyer (le rappel s’affiche chez eux).</p>`:''}
     ${E.length?`<p class="ok">✓ Ont envoyé :</p><ul class="small">${E.map(g=>`<li>${g.noms.map(esc).join(' · ')} — ${[...g.src].join(' + ')} ${h(g.ts)}</li>`).join('')}</ul>`:''}</section>`}
-function vAppel(){if(!P.classe)return pasDeClasse('Appel');const cy=clsCy(P.classe),sid=seanceCourante(cy),K=eleves();const inList=new Set(liste().map(n=>cleEleve(P.classe,n)));
-  const st=K.map(k=>[k,statut(k,sid)]);const cpt={};st.forEach(([,x])=>cpt[x.c]=(cpt[x.c]||0)+1);
-  return `<section class="card"><h2>Appel · ${SBY[sid].n}</h2>${stripSeances(cy,sid)}
-    <p>${Object.entries(cpt).map(([c,n])=>`<span class="badge st-${c}">${STATUTS[c]} : ${n}</span>`).join(' ')}</p>
-    <div class="tw"><table class="tt l"><tr><th>Élève</th><th>Statut</th><th>Reçu</th><th>Corriger</th></tr>
-    ${st.map(([k,x])=>{const e=P.eleves[k],r=e&&e.recu[sid];return `<tr class="st-${x.c}"><td><button class="lnk" data-act="fiche" data-k="${esc(k)}">${esc(nomAff(k))}</button>${inList.has(k)||!inList.size?'':' <span class="badge">hors liste</span>'}</td><td>${STATUTS[x.c]}${x.manuel?' <span class="small muted">(corrigé)</span>':''}</td><td class="small">${r?(r.src==='qr'?'QR':'en ligne')+(r.date?' · '+esc(dateFr(r.date)):''):'–'}</td>
-      <td><select class="in sel" data-appel="${esc(k)}"><option value="">auto</option>${['present','retard','tenue','disp','absent','abj','oubli'].map(c=>`<option value="${c}"${x.manuel&&x.c===c?' selected':''}>${STATUTS[c]}</option>`).join('')}</select></td></tr>`}).join('')}</table></div>
-    <p class="small muted">Auto : séance reçue = présent ; « absent » ou « blessé / dispensé » coché par le groupe = absent ou dispensé ; rien = rien reçu. « Hors liste » : nom absent de la liste Pronote, à fusionner depuis sa fiche.</p></section>${groupesAppel(sid)}`}
+/* séance de l'appel : celle choisie dans l'appel aujourd'hui, sinon la séance en cours (ne change pas la séance du QR) */
+function seanceAppel(cy){const L=sessOf(cy),x=P.apS;if(x&&x.d===apJour()&&x.c===P.classe&&L.some(s=>s.id===x.s))return x.s;return seanceCourante(cy)}
+function vAppel(){if(!P.classe)return pasDeClasse('Appel');const cy=clsCy(P.classe),sid=seanceAppel(cy);
+  const K=eleves().map(k=>({k,nom:nomAff(k),auto:APA.autoDe(k,sid)}));
+  return `<section class="card">${apVue(P.classe,sid,SBY[sid].n,K,stripSeances(cy,sid,'apseance'))}</section>${groupesAppel(sid)}`}
+const AP_ANCIEN={present:{s:'p'},retard:{s:'p',m:['retard']},tenue:{s:'p',m:['tenue']},oubli:{s:'p',m:['oubli']},disp:{s:'i'},absent:{s:'a'},abj:{s:'a',m:['just']}};
+const APA={db:()=>P,sauver:()=>sauver(),rendre:()=>{const y=scrollY;rendre();scrollTo(0,y)},
+  lien:(k,nom)=>`<button type="button" class="ap-nom" data-act="fiche" data-k="${esc(k)}">${esc(nom)}</button>`,
+  nom:k=>nomAff(k),nomSeance:s=>(SBY[s]||{n:s}).n,autoTxt:'d’après le carnet reçu',
+  ancien:(c,s,k)=>{const o=(P.appel||{})[nk(c)+'|'+s+'|'+k];return o?AP_ANCIEN[o]||null:null},
+  autoDe:(k,s)=>{const e=P.eleves[k],d=e&&e.seances[s];if(!d)return {nonRecu:true};if(d.st==='abs')return {s:'a',info:'absent selon le carnet'};if(d.st==='bl')return {s:'i',info:'blessé selon le carnet'};return {s:'p',info:'carnet reçu'}}};
+/* ===================== Appel (chantier 10, 26/11/2026) =====================
+   Repris du module d'appel de Demi-fond et mis à niveau. Code propre à cet outil (copie autonome).
+   4 statuts exclusifs : Présent · Absent · Inapte · Inapte partiel (absent ≠ inapte, partout).
+   Précisions cumulables : en retard, oubli de tenue, absence justifiée, oubli d'envoi.
+   Données : <base>.appel2['classe|séance'] = [ {d:'AAAA-MM-JJ', t, el:{ clé élève:{s,m:[],t} }} , … ]
+   - la date est fixée au 1er appel de la séance ; les corrections modifient ce même appel ;
+   - « Séance refaite aujourd'hui » ajoute un nouvel appel daté : les précédents sont gardés ;
+   - toucher le statut actif le retire (retour au statut automatique ou « non renseigné »).
+   L'adaptateur APA (défini juste avant ce bloc) relie le module à l'outil. */
+const AP4=[['p','Présent','P'],['a','Absent','A'],['i','Inapte','I'],['ip','Inapte partiel','IP']];
+const AP4N={p:'Présent',a:'Absent',i:'Inapte',ip:'Inapte partiel'};
+const APM={retard:'En retard',tenue:'Oubli de tenue',just:'Absence justifiée',oubli:'Oubli d’envoi'};
+const apJour=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const apDateFr=d=>{try{return new Date(d+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}catch(e){return d}};
+function apBase(){const B=APA.db();return B.appel2=B.appel2||{}}
+function apRecs(c,s){return apBase()[c+'|'+s]||[]}
+function apRec(c,s){const L=apRecs(c,s);return L.length?L[L.length-1]:null}
+/* statut final d'un élève : manuel (appel), sinon ancien appel (avant ce module), sinon automatique */
+function apStatut(c,s,k,auto){
+  const r=apRec(c,s),e=r&&r.el[k];
+  if(e&&e.s)return {s:e.s,m:e.m||[],src:'appel'};
+  const a=auto||{};
+  if(e&&!e.s&&(e.m||[]).length)return {s:a.s||'',m:e.m,src:a.s?'auto':'',info:a.info};
+  const o=APA.ancien&&APA.ancien(c,s,k);if(o&&o.s)return {s:o.s,m:o.m||[],src:'ancien'};
+  return {s:a.s||'',m:[],src:a.s?'auto':'',info:a.info};
+}
+function apModifier(c,s,k,f){
+  const B=apBase(),id=c+'|'+s,L=B[id]=B[id]||[];let r=L[L.length-1];
+  if(!r){r={d:APA.dateDe?APA.dateDe(s):apJour(),t:Date.now(),el:{}};L.push(r)}
+  const e=f(r.el[k]?{s:r.el[k].s||'',m:(r.el[k].m||[]).slice()}:{s:'',m:[]});
+  if(e&&(e.s||e.m.length)){e.t=Date.now();r.el[k]=e}else delete r.el[k];
+  r.maj=Date.now();
+}
+function apRefaite(c,s){const B=apBase(),id=c+'|'+s,L=B[id]=B[id]||[];const r=L[L.length-1];if(r&&r.d===apJour())return false;L.push({d:apJour(),t:Date.now(),el:{},refaite:true});return true}
+let AP_CTX=null;   /* contexte de l'écran d'appel affiché : {c,s,K:[{k,nom,auto}]} */
+function apStyle(){if(document.getElementById('ap-style'))return;const st=document.createElement('style');st.id='ap-style';st.textContent=`
+.ap-tete{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}
+.ap-cpt{display:inline-block;padding:4px 10px;border-radius:999px;font-weight:800;font-size:14px;background:#eef2f6;color:#1c2128}
+.ap-cpt.p{background:#dcfce7;color:#166534}.ap-cpt.a{background:#fee2e2;color:#991b1b}.ap-cpt.i{background:#e0e7ff;color:#3730a3}.ap-cpt.ip{background:#fef3c7;color:#92400e}.ap-cpt.n{background:#f1f5f9;color:#475569}
+.ap-liste{list-style:none;margin:8px 0;padding:0;display:grid;gap:8px}
+@media(min-width:760px){.ap-liste{grid-template-columns:1fr 1fr}}
+.ap-l{border:2px solid #e2e8f0;border-radius:14px;padding:10px;background:#fff}
+.ap-l.s-p{border-color:#86efac}.ap-l.s-a{border-color:#fca5a5}.ap-l.s-i{border-color:#a5b4fc}.ap-l.s-ip{border-color:#fcd34d}
+.ap-n{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;margin-bottom:8px}
+.ap-nom{background:none;border:0;padding:0;font:inherit;font-weight:800;font-size:17px;color:#14181f;text-align:left;cursor:pointer;text-decoration:underline;text-decoration-color:#cbd5e1}
+.ap-info{font-size:13.5px;color:#475569}.ap-info.al{color:#b42318;font-weight:700}
+.ap-b{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.ap-b button{min-height:48px;border-radius:12px;border:2px solid #cbd5e1;background:#fff;color:#14181f;font-family:inherit;font-weight:800;font-size:17px;line-height:1;cursor:pointer;padding:0 4px}
+.ap-b button small{display:block;font-weight:600;font-size:11px;margin-top:2px}
+.ap-b button[aria-pressed=true].p{background:#15803d;border-color:#15803d;color:#fff}.ap-b button[aria-pressed=true].a{background:#b91c1c;border-color:#b91c1c;color:#fff}
+.ap-b button[aria-pressed=true].i{background:#4338ca;border-color:#4338ca;color:#fff}.ap-b button[aria-pressed=true].ip{background:#b45309;border-color:#b45309;color:#fff}
+.ap-b button.auto{border-style:dashed}
+.ap-m{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ap-m button{min-height:40px;border-radius:999px;border:2px solid #cbd5e1;background:#fff;color:#334155;font-family:inherit;font-weight:700;font-size:14px;padding:0 12px;cursor:pointer}
+.ap-m button[aria-pressed=true]{background:#334155;border-color:#334155;color:#fff}
+.ap-act{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.ap-act button{min-height:46px;border-radius:12px;border:2px solid #1c2128;background:#1c2128;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:0 14px;cursor:pointer}
+.ap-act button.sec{background:#fff;color:#1c2128;border-color:#cbd5e1}
+.ap-date{font-size:14px;color:#475569;margin:4px 0}
+.ap-hist{width:100%;border-collapse:collapse;font-size:14px}.ap-hist th,.ap-hist td{padding:5px 6px;border-top:1px solid #e2e8f0;text-align:center}.ap-hist th:first-child,.ap-hist td:first-child{text-align:left}
+.ap-hw{overflow-x:auto}`;document.head.appendChild(st)}
+/* écran d'appel : c classe, s séance, sNom libellé, K [{k,nom,auto:{s,info,nonRecu}}], choix html du sélecteur de séance */
+function apVue(c,s,sNom,K,choix){
+  apStyle();AP_CTX={c,s,K};
+  const r=apRec(c,s),L=K.map(x=>Object.assign({},x,{st:apStatut(c,s,x.k,x.auto)}));
+  const n={p:0,a:0,i:0,ip:0,'':0};L.forEach(x=>n[x.st.s||'']++);
+  const auj=apJour(),dateTxt=r?`Appel du <b>${esc(apDateFr(r.d))}</b>${r.d!==auj?' · <span class="ap-info al">ce n’est pas aujourd’hui</span>':''}${apRecs(c,s).length>1?` · ${apRecs(c,s).length} appels pour cette séance`:''}`:`Pas encore d’appel pour cette séance : il sera daté d’aujourd’hui (${esc(apDateFr(auj))}).`;
+  const ligne=x=>{const st=x.st,sel=st.s,auto=st.src==='auto'||st.src==='ancien';
+    const info=[st.src==='auto'&&x.auto&&x.auto.info?x.auto.info:'',st.src==='ancien'?'appel d’avant la mise à jour':''].filter(Boolean).join(' · ');
+    const al=x.auto&&x.auto.nonRecu?'⚠ carnet non reçu':'';
+    const pm=[];if(sel==='p'||sel==='ip'||sel==='i'){pm.push('retard');pm.push('tenue')}if(sel==='a')pm.push('just');if(x.auto&&x.auto.nonRecu&&sel&&sel!=='a')pm.push('oubli');
+    (st.m||[]).forEach(m=>{if(!pm.includes(m))pm.push(m)});
+    return `<li class="ap-l s-${sel||'n'}"><div class="ap-n">${APA.lien(x.k,x.nom)}${info?`<span class="ap-info">${esc(info)}</span>`:''}${al?`<span class="ap-info al">${al}</span>`:''}</div>
+      <div class="ap-b" role="group" aria-label="Statut de ${esc(x.nom)}">${AP4.map(([v,l,ab])=>`<button type="button" class="${v}${sel===v&&auto?' auto':''}" data-ap="${esc(x.k)}|${v}" aria-pressed="${sel===v}" title="${l}">${ab}<small>${l}</small></button>`).join('')}</div>
+      ${pm.length?`<div class="ap-m">${pm.map(m=>`<button type="button" data-apm="${esc(x.k)}|${m}" aria-pressed="${(st.m||[]).includes(m)}">${APM[m]}</button>`).join('')}</div>`:''}</li>`};
+  return `<h2>Appel · ${esc(sNom)}</h2>${choix||''}
+   <p class="ap-date">${dateTxt}</p>
+   <div class="ap-tete"><span class="ap-cpt p">Présents ${n.p}</span><span class="ap-cpt a">Absents ${n.a}</span><span class="ap-cpt i">Inaptes ${n.i}</span><span class="ap-cpt ip">Inaptes partiels ${n.ip}</span>${n['']?`<span class="ap-cpt n">Non renseignés ${n['']}</span>`:''}</div>
+   <div class="ap-act">${n['']?`<button type="button" data-apx="tous">✓ Les ${n['']} non renseigné${n['']>1?'s':''} : présents</button>`:''}${r&&r.d!==auj&&!APA.sansRefaite?'<button type="button" class="sec" data-apx="refaite">📅 Séance refaite aujourd’hui (nouvel appel)</button>':''}<button type="button" class="sec" data-apx="csv">⬇ Exporter l’appel (CSV)</button></div>
+   <ul class="ap-liste">${L.map(ligne).join('')}</ul>
+   <p class="small muted">Touchez le statut ; touchez-le à nouveau pour l’enlever. Pointillés = statut proposé automatiquement${APA.autoTxt?' ('+APA.autoTxt+')':''} : le toucher le confirme. Absent et inapte sont toujours distincts. Tout est gardé sur l’appareil (hors connexion) et dans la sauvegarde.</p>
+   ${apRecap(c,K)}`;
+}
+/* récapitulatif du cycle pour la classe : par élève, nombre de séances par statut et précisions */
+function apRecap(c,K){
+  const B=apBase(),ids=Object.keys(B).filter(id=>id.slice(0,id.lastIndexOf('|'))===c);if(!ids.length)return '';
+  const rows=K.map(x=>{const t={a:0,i:0,ip:0,just:0,retard:0,tenue:0};ids.forEach(id=>{const s=id.slice(id.lastIndexOf('|')+1);const st=apStatut(c,s,x.k,(APA.autoDe&&APA.autoDe(x.k,s))||null);if(t[st.s]!=null&&st.s!=='p')t[st.s]++;(st.m||[]).forEach(m=>{if(t[m]!=null)t[m]++})});return [x,t]}).filter(([,t])=>Object.values(t).some(Boolean));
+  return `<details><summary><b>Récapitulatif de la classe</b> (${ids.length} séance${ids.length>1?'s':''} avec appel)</summary>${rows.length?`<div class="ap-hw"><table class="ap-hist"><tr><th>Élève</th><th>Abs.</th><th>dont just.</th><th>Inapte</th><th>Inapte part.</th><th>Retards</th><th>Tenue</th></tr>${rows.map(([x,t])=>`<tr><td>${esc(x.nom)}</td><td>${t.a||''}</td><td>${t.just||''}</td><td>${t.i||''}</td><td>${t.ip||''}</td><td>${t.retard||''}</td><td>${t.tenue||''}</td></tr>`).join('')}</table></div>`:'<p class="small">Rien à signaler : tous présents.</p>'}</details>`;
+}
+function apCSV(c){
+  const B=apBase(),L=[['Classe','Séance','Date','Élève','Statut','Précisions','Modifié le']];
+  Object.keys(B).filter(id=>id.slice(0,id.lastIndexOf('|'))===c).forEach(id=>{const s=id.slice(id.lastIndexOf('|')+1);B[id].forEach(r=>Object.entries(r.el).forEach(([k,e])=>L.push([c,APA.nomSeance?APA.nomSeance(s):s,r.d,APA.nom(k),AP4N[e.s]||'',(e.m||[]).map(m=>APM[m]).join(' + '),e.t?new Date(e.t).toLocaleString('fr-FR'):''])))});
+  const txt='﻿'+L.map(r=>r.map(v=>{v=String(v==null?'':v);return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(';')).join('\r\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/csv;charset=utf-8'}));a.download='appel_'+String(c).replace(/[^\w-]+/g,'_')+'_'+apJour()+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('[data-ap],[data-apm],[data-apx]');if(!b||!AP_CTX)return;
+  e.preventDefault();e.stopPropagation();const {c,s,K}=AP_CTX;
+  if(b.dataset.ap!=null){const v=b.dataset.ap,i=v.lastIndexOf('|'),k=v.slice(0,i),val=v.slice(i+1),x=K.find(y=>y.k===k)||{},st=apStatut(c,s,k,x.auto);
+    apModifier(c,s,k,en=>{en.s=st.src==='appel'&&st.s===val?'':val;if(en.s!=='a')en.m=en.m.filter(m=>m!=='just');if(en.s==='a')en.m=en.m.filter(m=>m==='just');return en})}
+  else if(b.dataset.apm!=null){const v=b.dataset.apm,i=v.lastIndexOf('|'),k=v.slice(0,i),m=v.slice(i+1),x=K.find(y=>y.k===k)||{},st=apStatut(c,s,k,x.auto);
+    apModifier(c,s,k,en=>{if(!en.s&&st.s)en.s=st.s;const j=en.m.indexOf(m);if(j>=0)en.m.splice(j,1);else en.m.push(m);return en})}
+  else if(b.dataset.apx==='tous'){K.forEach(x=>{if(!apStatut(c,s,x.k,x.auto).s)apModifier(c,s,x.k,en=>{en.s='p';return en})})}
+  else if(b.dataset.apx==='refaite'){if(!confirm('Nouvel appel daté d’aujourd’hui pour cette séance ? L’appel précédent est gardé dans l’historique.'))return;apRefaite(c,s)}
+  else if(b.dataset.apx==='csv'){apCSV(c);return}
+  APA.sauver();APA.rendre();
+},true);
+/* ===================== fin du module Appel ===================== */
+
 /* ----- Séance (classe entière) ----- */
 /* ----- Séance : tableau du jour (colonnes essentielles ; « Plus de colonnes » garde le reste) ----- */
 let SE_PLUS=(()=>{try{return localStorage.getItem('dfp-seance-plus')==='1'}catch(e){return false}})();
@@ -571,9 +687,9 @@ function afl1Sec(run,e){if(isM(run)){const f=aflM(run,e.seances.s8,'S'),b=aflM(r
   return Object.assign({},ref,{n3,n1,tot:n3+n1+ref.z+ref.rg,rattrapage:!f})}
 const a1Sec=(run,e)=>e.fige&&e.fige.a1?Object.assign({},e.fige.a1,{figeLe:e.fige.ts}):afl1Sec(run,e);
 /* participation /4 : 4 − 1 par absence non justifiée − 0,5 par retard, oubli de tenue ou oubli d'envoi (appel) */
-const PART_PEN={absent:1,retard:0.5,tenue:0.5,oubli:0.5};
+const PART_PEN={absent:1,retard:0.5,tenue:0.5,oubli:0.5};   /* v3.13 : retard, tenue et oubli d'envoi sont des précisions cumulables (0,5 chacune) */
 function sugPart(k){const K=eleves(),L=sessOf('S').filter(s=>K.some(x=>P.eleves[x]&&P.eleves[x].seances[s.id]));if(!L.length)return null;
-  let p=0,ab=0,ro=0,ri=0;L.forEach(s=>{const c=statut(k,s.id).c;p+=PART_PEN[c]||0;if(c==='absent')ab++;else if(PART_PEN[c])ro++;if(c==='rien')ri++});
+  let p=0,ab=0,ro=0,ri=0;L.forEach(s=>{const x=statut(k,s.id),c=x.c,m=x.m||[];let q=c==='absent'?1:0;['retard','tenue','oubli'].forEach(t=>{if(m.includes(t))q+=.5});p+=q;if(c==='absent')ab++;else if(q)ro++;if(c==='rien')ri++});
   return {v:Math.max(0,4-p),d:`${ab} absence${ab>1?'s':''} non justifiée${ab>1?'s':''} · ${ro} retard / tenue / oubli${ri?` · <span class="warn">${ri} séance${ri>1?'s':''} sans rien reçu : vérifie l’appel</span>`:''}`}}
 function noteTot(e,cy,a1){const a2=num(e.afl2),a3=num(e.afl3);if(!a1||a1.tot==null||a2==null||a3==null)return null;
   if(cy==='T')return R((a1.tot+a2+a3)*10)/10;const pa=num(e.part);return pa==null?null:R(((a1.tot+a2+a3)*0.8+pa)*10)/10}
@@ -624,6 +740,7 @@ document.addEventListener('click',async ev=>{
   switch(a){
     case 'vue':P.vue=v;if(v!=='fiche')P.eleve=null;break;
     case 'seance':P.seance=v;break;
+    case 'apseance':P.apS={s:v,d:apJour(),c:P.classe};break;
     case 'fiche':P.eleve=k;P.vue='fiche';window.scrollTo(0,0);break;
     case 'det':return detail(k,v);
     case 'closem':return closeModal();
@@ -675,7 +792,6 @@ document.addEventListener('change',async ev=>{const t=ev.target;
   if(t.id==='cl-fic'&&t.files.length){try{await importerListe([...t.files],'',$('#cl-nom').value.trim(),$('#cl-cy').value)}catch(x){alert('Fichier illisible : '+(x.message||x))}t.value='';return}
   if(t.classList.contains('cl-lien')){const u=t.value.trim();if(u&&!/^https:\/\//.test(u)){alert('Le lien doit commencer par https://');return}P.classesL[t.dataset.cl].lien=u;sauver();return toast('Lien enregistré : refais afficher le QR de démarrage.')}
   if(t.classList.contains('cl-cy')){const c=t.dataset.cl;P.classesL[c].cy=t.value;Object.values(P.eleves).forEach(e=>{if(e.classe===c)e.cy=t.value});sauver();return rendre()}
-  if(t.dataset.appel!=null){const id=nk(P.classe)+'|'+P.seance+'|'+t.dataset.appel;if(t.value)P.appel[id]=t.value;else delete P.appel[id];sauver();return rendre()}
   if(t.dataset.ctrl){const [k,sid]=t.dataset.ctrl.split('|');P.ctrl=P.ctrl||{};P.ctrl[k]=P.ctrl[k]||{};if(t.value.trim())P.ctrl[k][sid]=t.value.trim();else delete P.ctrl[k][sid];sauver();const y=window.scrollY;rendre();window.scrollTo(0,y);return}
   if(t.dataset.af){const [k,f]=t.dataset.af.split('|');P.eleves[k][f]=t.value.trim();sauver();const y=window.scrollY;rendre();window.scrollTo(0,y);return}
   if(['chw','chr','chn'].includes(t.id)){const v=Math.max(t.id==='chr'?0:1,R(num(t.value)||0));CH[{chw:'w',chr:'r',chn:'n'}[t.id]]=v;return rendre()}

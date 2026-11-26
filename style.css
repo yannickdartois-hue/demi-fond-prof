@@ -317,7 +317,7 @@ nav.otop button.ici{background:var(--tartan);border-color:var(--tartan);color:#f
 .qr-plein>div{background:#fff;color:#111;border-radius:24px;padding:20px;max-width:680px;width:100%;text-align:center;max-height:100%;overflow:auto}
 .qr-plein .qr{box-shadow:none;max-width:min(600px,72vh)}.qr-plein h2{color:#111}
 .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:max(13px,var(--fs-min,15px));font-weight:800;background:var(--bg2)}
-.badge.st-present{background:#dcfce7;color:#166534}.badge.st-disp{background:#fef3c7;color:#92400e}.badge.st-absent,.badge.st-abj{background:#f1f5f4;color:var(--muted)}.badge.st-rien,.badge.st-oubli{background:#fde8e6;color:#b42318}
+.badge.st-present{background:#dcfce7;color:#166534}.badge.st-ip{background:#fef3c7;color:#92400e}.badge.st-disp{background:#fef3c7;color:#92400e}.badge.st-absent,.badge.st-abj{background:#f1f5f4;color:var(--muted)}.badge.st-rien,.badge.st-oubli{background:#fde8e6;color:#b42318}
 tr.st-rien td:nth-child(2),tr.st-oubli td:nth-child(2){color:#b42318;font-weight:800}
 .alist{list-style:none;padding:0;margin:0}.alist li{display:flex;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:15px}
 table.pt .in.w{max-width:80px;font-size:18px;min-height:44px}
