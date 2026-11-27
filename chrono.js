@@ -11,6 +11,7 @@
    - Temps : fin de chaque phase fixée à l'heure réelle (aucune dérive en arrière-plan) ; au retour, les
      phases dépassées sont rattrapées sans bruit et aucun signal en retard n'est joué.
    - 1’30 : annonce « 45 secondes » ; bouton « Remise à zéro » (confirmé si le chrono tourne).
+   v3.16 : récupération en vert (course en rouge, quel que soit le thème de couleurs) ; répétitions restantes affichées.
    ===================================================================== */
 'use strict';
 /* ---------- chrono de classe (téléphone du prof + enceinte) ---------- */
@@ -18,12 +19,17 @@ const CPRE=[['36"/36" × 8',36,36,8,0],['36"/36" × 6',36,36,6,0],['Test 36"/24"
 let CH={w:36,r:36,n:8,mid:0,voice:true,run:null};
 function chronoView(){const r=CH.run;
   return `<section class="card chrono"><h2>⏱ Chrono de classe</h2><p class="muted small">Pour ton téléphone branché sur une enceinte : bips à chaque départ et arrêt, 3-2-1 avant chaque changement, voix en français.</p>
-  ${r?`<div class="chbig ${r.ph}"><span id="chph">${r.ph==='run'?'Course':r.ph==='rest'?'Récupération':r.ph==='pre'?'Prêts…':'Terminé'}</span><b id="cht">${fT(Math.ceil(r.left))}</b><span id="chrep">${r.ph==='done'?'':'Répétition '+r.i+' / '+CH.n}</span></div>
+  ${r?`<div class="chbig ${r.ph}"><span id="chph">${r.ph==='run'?'Course':r.ph==='rest'?'Récupération':r.ph==='pre'?'Prêts…':'Terminé'}</span><b id="cht">${fT(Math.ceil(r.left))}</b>${chRep(r)}</div>
      <div class="row wrap center"><button class="btn big" data-act="chpause">${r.paused?'▶ Reprendre':'Ⅱ Pause'}</button><button class="btn big ghost" data-act="chstop">↺ Remise à zéro</button></div>`
    :`<div class="seg">${CPRE.map((p,i)=>`<button class="chip ${CH.w===p[1]&&CH.r===p[2]&&CH.n===p[3]&&CH.mid===p[4]?'on':''}" data-chp="${i}">${p[0]}</button>`).join('')}</div>
      <div class="row wrap"><label>Course (s) <input class="in w" id="chw" inputmode="numeric" value="${CH.w}"></label><label>Récupération (s) <input class="in w" id="chr" inputmode="numeric" value="${CH.r}"></label><label>Répétitions <input class="in w" id="chn" inputmode="numeric" value="${CH.n}"></label></div>
      <label class="tog"><input type="checkbox" id="chmid" ${CH.mid?'checked':''}> Annoncer la mi-course</label><label class="tog"><input type="checkbox" id="chvoice" ${CH.voice?'checked':''}> Voix (« Partez », « Stop », « Mi-course », « 45 secondes » au 1’30)</label>
      <p class="small">Total : <b>${fT(CH.n*CH.w+(CH.n-1)*CH.r)}</b></p><button class="btn pri huge" data-act="chgo">▶ Lancer (départ dans 5 s)</button>`}</section>`}
+/* v3.16 : nombre de répétitions restantes, bien visible (rien pour un effort unique : 1’30, 3’…) */
+function chReste(r){return r&&r.ph!=='done'?CH.n-r.i:-1}   /* en course : après celle-ci ; en récupération : à faire */
+function chRep(r){if(r.ph==='done'||CH.n<2)return '';const n=chReste(r);
+  const txt=r.ph==='pre'?CH.n+' répétitions à faire':r.ph==='run'?(n===0?'Dernière répétition !':'Encore <em>'+n+'</em> après celle-ci'):(n===1?'Encore <em>1</em> répétition':'Encore <em>'+n+'</em> répétitions');
+  return `<span id="chrep">${r.ph==='pre'?'':'Répétition '+r.i+' / '+CH.n}</span><span class="chreste">${txt}</span>`}
 /* ---------- signaux planifiés (v3.14) ---------- */
 function acOk(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}return AC}
 let PLAN=[];   /* signaux planifiés pas encore joués : {k (clé), t (heure prévue, ms), o (oscillateur)} */

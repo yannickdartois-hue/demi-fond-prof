@@ -241,7 +241,11 @@ header{padding-top:12px}
 @media (max-width:560px){.sbar button{height:28px;font-size:max(13px,var(--fs-min,15px))}}
 .todo{background:var(--track-soft);border-radius:var(--r-sm);padding:10px 12px;margin:8px 0}.todo p{margin:0 0 6px}
 .chbig{display:flex;flex-direction:column;align-items:center;border-radius:24px;padding:24px 12px;margin:12px 0;color:#fff;background:var(--tartan)}
-.chbig.rest{background:var(--lagoon)}.chbig.done,.chbig.pre{background:var(--ink)}
+.chbig{background:var(--ch-run)}.chbig.rest{background:var(--ch-rest)}.chbig.done,.chbig.pre{background:var(--ch-pre)}
+/* v3.16 : couleurs propres au chrono (le thème de l'appli redéfinit --lagoon en rouge) : course rouge, récupération verte */
+:root{--ch-run:#c2412d;--ch-rest:#15803d;--ch-pre:#12222b}:root[data-theme="dark"]{--ch-pre:#24414c}
+.chbig .chreste{margin-top:10px;padding:6px 16px;border-radius:999px;background:rgba(0,0,0,.22);font-size:24px;font-weight:800}.chbig .chreste em{font-style:normal;font-size:34px;font-weight:900;font-variant-numeric:tabular-nums}
+.chband{background:var(--ch-pre)}.chband.run{background:var(--ch-run)}.chband.rest{background:var(--ch-rest)}
 .chbig span{font-size:22px;font-weight:800}.chbig b{font-size:min(28vw,150px);line-height:1;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
 .il{display:inline}
 #demobar{position:sticky;top:0;z-index:70;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:8px 12px;background:repeating-linear-gradient(135deg,#f97316 0 14px,#ea580c 14px 28px);color:#fff;font-size:max(14px,var(--fs-min,15px))}
