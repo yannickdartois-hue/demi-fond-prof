@@ -242,8 +242,8 @@ header{padding-top:12px}
 .todo{background:var(--track-soft);border-radius:var(--r-sm);padding:10px 12px;margin:8px 0}.todo p{margin:0 0 6px}
 .chbig{display:flex;flex-direction:column;align-items:center;border-radius:24px;padding:24px 12px;margin:12px 0;color:#fff;background:var(--tartan)}
 .chbig{background:var(--ch-run)}.chbig.rest{background:var(--ch-rest)}.chbig.done,.chbig.pre{background:var(--ch-pre)}
-/* v3.16 : couleurs propres au chrono (le thème de l'appli redéfinit --lagoon en rouge) : course rouge, récupération verte */
-:root{--ch-run:#c2412d;--ch-rest:#15803d;--ch-pre:#12222b}:root[data-theme="dark"]{--ch-pre:#24414c}
+/* v3.17 : couleurs propres au chrono, règle commune des applis : effort VERT, repos ROUGE (le thème redéfinit --lagoon : on ne s'en sert plus ici) */
+:root{--ch-run:#15803d;--ch-rest:#b91c1c;--ch-pre:#12222b}:root[data-theme="dark"]{--ch-pre:#24414c}
 .chbig .chreste{margin-top:10px;padding:6px 16px;border-radius:999px;background:rgba(0,0,0,.22);font-size:24px;font-weight:800}.chbig .chreste em{font-style:normal;font-size:34px;font-weight:900;font-variant-numeric:tabular-nums}
 .chband{background:var(--ch-pre)}.chband.run{background:var(--ch-run)}.chband.rest{background:var(--ch-rest)}
 .chbig span{font-size:22px;font-weight:800}.chbig b{font-size:min(28vw,150px);line-height:1;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
@@ -404,7 +404,7 @@ table.fseances td.l{text-align:left}.fit b small{font-weight:600}
 /* chrono qui continue sur les autres onglets */
 .chband{position:sticky;top:0;z-index:30;display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#14181f;color:#fff;border-radius:14px;padding:8px 12px;margin:0 0 12px}
 .chband .lnk{color:#fff;font-size:20px;font-weight:800;flex:1;text-align:left;background:none;border:0}.chband b{font-variant-numeric:tabular-nums;font-size:26px}
-.chband.rest{background:#15803d}.chband .btn{min-height:40px}
+.chband .btn{min-height:40px}
 .nuage{border:2px solid #2563eb;background:#eff6ff}.nuage h3{color:#1d4ed8;margin-top:0}
 .etapes3{margin:0;padding-left:22px}.etapes3 li{margin:6px 0}
 :root[data-theme="dark"] .nuage{background:#121d33}

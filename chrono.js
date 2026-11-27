@@ -11,7 +11,7 @@
    - Temps : fin de chaque phase fixée à l'heure réelle (aucune dérive en arrière-plan) ; au retour, les
      phases dépassées sont rattrapées sans bruit et aucun signal en retard n'est joué.
    - 1’30 : annonce « 45 secondes » ; bouton « Remise à zéro » (confirmé si le chrono tourne).
-   v3.16 : récupération en vert (course en rouge, quel que soit le thème de couleurs) ; répétitions restantes affichées.
+   v3.16 : répétitions restantes affichées. v3.17 : règle commune des chronos : effort (course) en VERT, récupération en ROUGE.
    ===================================================================== */
 'use strict';
 /* ---------- chrono de classe (téléphone du prof + enceinte) ---------- */
