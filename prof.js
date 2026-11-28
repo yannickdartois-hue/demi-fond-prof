@@ -399,6 +399,9 @@ const APA={db:()=>P,sauver:()=>sauver(),rendre:()=>{const y=scrollY;rendre();scr
   nom:k=>nomAff(k),nomSeance:s=>(SBY[s]||{n:s}).n,autoTxt:'d’après le carnet reçu',
   ancien:(c,s,k)=>{const o=(P.appel||{})[nk(c)+'|'+s+'|'+k];return o?AP_ANCIEN[o]||null:null},
   autoDe:(k,s)=>{const e=P.eleves[k],d=e&&e.seances[s];if(!d)return {nonRecu:true};if(d.st==='abs')return {s:'a',info:'absent selon le carnet'};if(d.st==='bl')return {s:'i',info:'blessé selon le carnet'};return {s:'p',info:'carnet reçu'}}};
+/* lien vers le cahier de textes (résumés Pronote) de l'écran de cours du cycle */
+const CAHIER_URL='https://yannickdartois-hue.github.io/cycle-demi-fond/index.html#cahier';
+function cahierLien(){return `<a href="${CAHIER_URL}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;min-height:56px;margin:10px 0 14px;padding:10px 14px;border-radius:14px;border:2px solid #334155;background:#fff;color:#1c2128;text-decoration:none;font-weight:800;font-size:17px"><span style="font-size:24px">📋</span><span>Cahier de textes · résumés à coller dans Pronote<small style="display:block;font-weight:400;font-size:14px;color:#5b6470">Ouvre l’écran de cours du cycle (texte de chaque séance, PDF, Word)</small></span></a>`}
 /* ===================== Appel (chantier 10, 26/11/2026) =====================
    Repris du module d'appel de Demi-fond et mis à niveau. Code propre à cet outil (copie autonome).
    4 statuts exclusifs : Présent · Absent · Inapte · Inapte partiel (absent ≠ inapte, partout).
@@ -839,7 +842,7 @@ function vPilotage(){if(!P.classe)return pasDeClasse('Pilotage');const cy=clsCy(
   <section class="card"><h3>Points d’attention</h3>${al.length?`<ul class="alist">${al.map(a=>`<li><span>${ICA[a[0]]}</span>${a[1]}</li>`).join('')}</ul>`:'<p class="muted">Rien à signaler.</p>'}</section>`}
 /* ----- Exporter ----- */
 function csv(L){return '﻿'+L.map(l=>l.map(v=>{if(typeof v==='number')v=String(v).replace('.',',');v=v==null?'':String(v);return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(';')).join('\r\n')}
-function vExport(){return `<section class="card"><h2>Exporter · ${esc(P.classe||'—')}</h2>${AVT('tableau','Vérifie les notes avant de les reporter dans Pronote.')}<p class="muted small">Fichiers .csv à ouvrir dans Excel ou LibreOffice (séparateur point-virgule).</p><div class="grid2">
+function vExport(){return `<section class="card"><h2>Exporter · ${esc(P.classe||'—')}</h2>${cahierLien()}${AVT('tableau','Vérifie les notes avant de les reporter dans Pronote.')}<p class="muted small">Fichiers .csv à ouvrir dans Excel ou LibreOffice (séparateur point-virgule).</p><div class="grid2">
   <div class="sub"><h3>Bilan et note</h3><p class="small muted">Une ligne par élève : VMA, projets tenus par séance, ★, AFL1 (blanche et épreuve), AFL2, AFL3, total /20.</p><button class="btn pri" data-act="csv" data-v="bilan">Télécharger</button></div>
   <div class="sub"><h3>Séances</h3><p class="small muted">Une ligne par élève et par séance : statut, projets tenus, écart, effort, charge, coach, réussite, conseil.</p><button class="btn pri" data-act="csv" data-v="seances">Télécharger</button></div></div></section>`}
 function exporter(type){if(!P.classe)return toast('Choisis une classe.');const cy=clsCy(P.classe),L=sessOf(cy),T=cy==='T',ev=T?['t7','t9']:['s6','s8'];let rows;
