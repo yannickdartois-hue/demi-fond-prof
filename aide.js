@@ -15,7 +15,7 @@ window.EPS_AIDE={appli:'Demi-fond · Outil prof',bouton:false,pied:'Toutes les d
 <li>Dans les tableaux, l’élève porte 🚶 ; le détail d’une séance signale s’il a été gêné pour respirer.</li>
 </ul><p class="astuce">Ce n’est pas automatique pour tout asthmatique : un asthme suivi et traité permet souvent de courir. Le parcours se décide avec l’avis médical.</p>`},
 {t:'📋 Appel',html:`<ol>
-<li>Onglet <b>Appel</b> : un bouton par statut pour chaque élève — <b>P</b> présent, <b>A</b> absent, <b>I</b> inapte, <b>IP</b> inapte partiel. Absent et inapte sont toujours distincts.</li>
+<li>Onglet <b>Appel</b> : tout le monde est présent par défaut. <b>Touche un nom</b> : Absent → Inapte → Inapte partiel → Présent (rouge, orange, jaune). <b>Appui long</b> sur un nom : précisions (retard, oubli de tenue, absence justifiée, oubli d’envoi) et fiche de l’élève. « ✓ Appel terminé » enregistre les présents. Pointillés = statut proposé d’après ce qui est reçu. Absent et inapte sont toujours distincts.</li>
 <li>Toucher le statut actif l’enlève. On peut changer à tout moment pendant le cours ; « Les non renseignés : présents » complète d’un coup.</li>
 <li>Précisions cumulables : en retard, oubli de tenue, absence justifiée, oubli d’envoi (carnet non reçu). Elles comptent dans la note de participation comme avant (−0,5 chacune, absence non justifiée −1).</li>
 <li>Statut proposé (pointillés) d’après le carnet reçu : séance reçue = présent, « absent » = absent, « blessé » = inapte. ⚠ carnet non reçu : rien n’est arrivé du groupe.</li>
